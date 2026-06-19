@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.pnpm-store/
+*.zip
+.DS_Store
+.env
+.env.local
+.vercel/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
