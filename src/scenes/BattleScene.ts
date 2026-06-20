@@ -44,6 +44,7 @@ export class BattleScene extends Phaser.Scene {
   private selectedCell?: CellKind;
   private randomEvent?: RandomEventConfig;
   private cleanupCommands?: () => void;
+  private destroyCleanupRegistered = false;
   private lastStateEmit = 0;
   private lastAtpTick = 0;
   private nextMicroRewardAt = 0;
@@ -115,6 +116,7 @@ export class BattleScene extends Phaser.Scene {
       this.updateSlotHighlight(pointer.worldX, pointer.worldY);
     });
 
+    this.releaseCommandListener();
     this.cleanupCommands = onBattleCommand((command) => {
       if (command.type === "select-cell") {
         this.selectedCell = command.cell;
@@ -149,14 +151,21 @@ export class BattleScene extends Phaser.Scene {
       }
     });
 
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.cleanupCommands?.();
-    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.releaseCommandListener);
+    if (!this.destroyCleanupRegistered) {
+      this.events.once(Phaser.Scenes.Events.DESTROY, this.releaseCommandListener);
+      this.destroyCleanupRegistered = true;
+    }
 
     this.nextWaveAt = this.time.now + 2800;
     this.nextMicroRewardAt = this.time.now + Phaser.Math.Between(5000, 10000);
     this.emitState(true);
   }
+
+  private readonly releaseCommandListener = () => {
+    this.cleanupCommands?.();
+    this.cleanupCommands = undefined;
+  };
 
   update(time: number, delta: number): void {
     this.updateCooldowns(time);
