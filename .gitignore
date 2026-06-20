@@ -6,6 +6,7 @@ dist/
 .env
 .env.local
 .vercel/
+.worktrees/
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
