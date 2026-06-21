@@ -71,7 +71,14 @@ export default function App() {
     }
 
     if (screen === "battle" && activeLevel) {
-      return <GameShell level={activeLevel} onExit={goHome} onSaveChanged={refreshSave} />;
+      return (
+        <GameShell
+          level={activeLevel}
+          soundEnabled={save.settings.sound}
+          onExit={goHome}
+          onSaveChanged={refreshSave}
+        />
+      );
     }
 
     return <MainMenu onNavigate={setScreen} />;

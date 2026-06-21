@@ -35,7 +35,7 @@ export class BattleScene extends Phaser.Scene {
   private readonly waves = new WaveSystem();
   private readonly randomEvents = new RandomEventSystem();
   private readonly buffs = new BuffSystem();
-  private readonly audio = new AudioCueSystem();
+  private readonly audio: AudioCueSystem;
 
   private cells = new Map<string, CellTower>();
   private summons: CellTower[] = [];
@@ -99,10 +99,11 @@ export class BattleScene extends Phaser.Scene {
     }
   };
 
-  constructor(level: LevelConfig, onSaveChanged: () => void) {
+  constructor(level: LevelConfig, onSaveChanged: () => void, soundEnabled: boolean) {
     super("BattleScene");
     this.level = level;
     this.onSaveChanged = onSaveChanged;
+    this.audio = new AudioCueSystem({ enabled: soundEnabled });
   }
 
   create(): void {
@@ -153,7 +154,10 @@ export class BattleScene extends Phaser.Scene {
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.releaseCommandListener);
     if (!this.destroyCleanupRegistered) {
-      this.events.once(Phaser.Scenes.Events.DESTROY, this.releaseCommandListener);
+      this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+        this.releaseCommandListener();
+        void this.audio.dispose();
+      });
       this.destroyCleanupRegistered = true;
     }
 

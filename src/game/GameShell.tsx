@@ -8,6 +8,7 @@ import type { BattleState, CellKind, LevelConfig } from "../types/game";
 
 interface GameShellProps {
   level: LevelConfig;
+  soundEnabled: boolean;
   onExit: () => void;
   onSaveChanged: () => void;
 }
@@ -41,7 +42,7 @@ const INITIAL_STATE: BattleState = {
   }
 };
 
-export function GameShell({ level, onExit, onSaveChanged }: GameShellProps) {
+export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameShellProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const onSaveChangedRef = useRef(onSaveChanged);
@@ -75,7 +76,7 @@ export function GameShell({ level, onExit, onSaveChanged }: GameShellProps) {
         antialias: true,
         pixelArt: false
       },
-      scene: [new BattleScene(level, () => onSaveChangedRef.current())]
+      scene: [new BattleScene(level, () => onSaveChangedRef.current(), soundEnabled)]
     });
 
     gameRef.current = game;
@@ -84,7 +85,7 @@ export function GameShell({ level, onExit, onSaveChanged }: GameShellProps) {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [level]);
+  }, [level, soundEnabled]);
 
   const totalKills = useMemo(
     () => Object.values(state.kills).reduce<number>((sum, value) => sum + value, 0),

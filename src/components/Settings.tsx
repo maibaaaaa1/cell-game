@@ -24,7 +24,7 @@ export function Settings({ save, onBack, onChange, onReset }: SettingsProps) {
         <label className="settings-row">
           <span>
             <strong>音效</strong>
-            <small>V1.0使用文字气泡表现，后续可接入音频资源。</small>
+            <small>开启轻量战斗提示音，低性能设备可关闭。</small>
           </span>
           <input
             type="checkbox"
