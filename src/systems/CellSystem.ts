@@ -52,7 +52,7 @@ export class CellSystem implements BattleSystem {
       id: `cell-${this.runtime.nextCellId}`,
       kind,
       slotId,
-      routeId: slot.y < 0.46 ? "left" : "right",
+      routeId: slot.x <= 0.5 ? "left" : "right",
       x: slot.x,
       y: slot.y,
       range: config.range,

@@ -6,6 +6,7 @@ import { BattleScene } from "../scenes/BattleScene";
 import { BATTLE_RESTART_COMMAND, onBattleState, sendBattleCommand } from "../systems/gameBus";
 import type { BattleState, CellKind, LevelConfig } from "../types/game";
 import { FIRST_LEVEL_HUD_LABELS, getFirstLevelActionCells } from "./firstLevelPresentation";
+import { clientPointToBattleCanvas } from "./pointerMapping";
 
 interface GameShellProps {
   level: LevelConfig;
@@ -62,6 +63,11 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
   }, [onSaveChanged]);
 
   useEffect(() => {
+    document.body.classList.add("battle-page-active");
+    return () => document.body.classList.remove("battle-page-active");
+  }, []);
+
+  useEffect(() => {
     return onBattleState(setState);
   }, []);
 
@@ -98,27 +104,30 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
   const handleDropOnCanvas = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const cell = draggedCellRef.current;
-    const rect = hostRef.current?.getBoundingClientRect();
+    const rect = getRenderedCanvasRect(hostRef.current);
     if (!cell || !rect) {
       return;
     }
 
-    const x = ((event.clientX - rect.left) / rect.width) * BATTLE_BALANCE_CONFIG.canvas.width;
-    const y = ((event.clientY - rect.top) / rect.height) * BATTLE_BALANCE_CONFIG.canvas.height;
+    const point = clientPointToBattleCanvas(event.clientX, event.clientY, rect, BATTLE_BALANCE_CONFIG.canvas.width, BATTLE_BALANCE_CONFIG.canvas.height);
+    if (!point) {
+      return;
+    }
     sendBattleCommand({ type: "select-cell", cell });
-    sendBattleCommand({ type: "place-selected", x, y });
+    sendBattleCommand({ type: "place-selected", x: point.x, y: point.y });
     draggedCellRef.current = null;
   };
 
   const placeAtClientPoint = (clientX: number, clientY: number) => {
-    const rect = hostRef.current?.getBoundingClientRect();
+    const rect = getRenderedCanvasRect(hostRef.current);
     if (!rect || !state.selectedCell) {
       return;
     }
 
-    const x = ((clientX - rect.left) / rect.width) * BATTLE_BALANCE_CONFIG.canvas.width;
-    const y = ((clientY - rect.top) / rect.height) * BATTLE_BALANCE_CONFIG.canvas.height;
-    sendBattleCommand({ type: "place-selected", x, y });
+    const point = clientPointToBattleCanvas(clientX, clientY, rect, BATTLE_BALANCE_CONFIG.canvas.width, BATTLE_BALANCE_CONFIG.canvas.height);
+    if (point) {
+      sendBattleCommand({ type: "place-selected", x: point.x, y: point.y });
+    }
   };
 
   return (
@@ -179,7 +188,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
 
           <div className="grid gap-2">
-            <div className="min-h-12 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold leading-6 text-white">
+            <div className="battle-status-message rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold leading-5 text-white">
               {level.chapter} · {level.name}：{state.message}
             </div>
           </div>
@@ -222,6 +231,10 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
       </section>
     </main>
   );
+}
+
+function getRenderedCanvasRect(host: HTMLDivElement | null): DOMRect | null {
+  return host?.querySelector("canvas")?.getBoundingClientRect() ?? host?.getBoundingClientRect() ?? null;
 }
 
 function HudItem({ label, value, tone }: { label: string; value: string | number; tone: string }) {

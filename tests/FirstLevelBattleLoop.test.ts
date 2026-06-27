@@ -7,6 +7,8 @@ import { FIRST_LEVEL_CELL_ORDER } from "../src/configs/firstLevelConfig.ts";
 import { LEVEL_CONFIG } from "../src/configs/levelConfig.ts";
 import { ROUTE_CONFIG } from "../src/configs/routeConfig.ts";
 import { WAVE_CONFIG } from "../src/configs/waveConfig.ts";
+import { findDeploySlotAtPoint } from "../src/game/deploySlotHitTest.ts";
+import { clientPointToBattleCanvas } from "../src/game/pointerMapping.ts";
 import { ATPSystem } from "../src/systems/ATPSystem.ts";
 import { BossSystem } from "../src/systems/BossSystem.ts";
 import { CellSystem } from "../src/systems/CellSystem.ts";
@@ -33,6 +35,30 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(CELL_CONFIG.nk.cost, 70);
   assert.equal(ENEMY_CONFIG.normalVirus.health, 60);
   assert.equal(ENEMY_CONFIG.fastVirus.speed, 1.45);
+});
+
+test("first level routes move from top entrance toward bottom tissue core", () => {
+  for (const routeId of ["noseLeft", "noseRight"]) {
+    const route = ROUTE_CONFIG[routeId];
+    const start = route.points[0];
+    const end = route.points[route.points.length - 1];
+
+    assert.ok(start.y < 0.12, `${routeId} should enter from the top`);
+    assert.ok(end.y > 0.86, `${routeId} should end near the bottom tissue core`);
+    assert.ok(start.y < end.y, `${routeId} must move downward overall`);
+  }
+});
+
+test("first level deploy slots are seven unique enabled touch targets", () => {
+  const slots = ROUTE_CONFIG.noseLeft.cellSlots;
+  const ids = new Set(slots.map((slot) => slot.id));
+
+  assert.equal(slots.length, 7);
+  assert.equal(ids.size, 7);
+  for (const slot of slots) {
+    assert.ok(slot.x > 0.08 && slot.x < 0.92);
+    assert.ok(slot.y > 0.1 && slot.y < 0.76);
+  }
 });
 
 test("cell deployment spends ATP and rejects unaffordable deployments", () => {
@@ -66,6 +92,41 @@ test("occupied immune slot cannot be deployed twice", () => {
   assert.equal(duplicate, null);
   assert.equal(runtime.cells.length, 1);
   assert.match(runtime.message, /已有细胞/);
+});
+
+test("each first level deploy slot accepts a cell deployment", () => {
+  const runtime = createBattleRuntimeState({ atp: 1000 });
+  const atp = new ATPSystem(runtime);
+  const cells = new CellSystem(runtime, atp);
+
+  for (const slot of ROUTE_CONFIG.noseLeft.cellSlots) {
+    assert.ok(cells.deploy("macrophage", slot.id), `${slot.id} should accept deployment`);
+  }
+
+  assert.equal(runtime.cells.length, 7);
+});
+
+test("scaled mobile canvas pointer coordinates still hit every deploy slot", () => {
+  const rect = { left: 12, top: 80, width: 270, height: 360 };
+  const worldSlots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => ({
+    id: slot.id,
+    x: slot.x * BATTLE_BALANCE_CONFIG.canvas.width,
+    y: slot.y * BATTLE_BALANCE_CONFIG.canvas.height,
+    radius: 24
+  }));
+
+  for (const slot of ROUTE_CONFIG.noseLeft.cellSlots) {
+    const point = clientPointToBattleCanvas(
+      rect.left + slot.x * rect.width,
+      rect.top + slot.y * rect.height,
+      rect,
+      BATTLE_BALANCE_CONFIG.canvas.width,
+      BATTLE_BALANCE_CONFIG.canvas.height
+    );
+
+    assert.ok(point);
+    assert.equal(findDeploySlotAtPoint(worldSlots, point.x, point.y)?.id, slot.id);
+  }
 });
 
 test("damage kills enemies and awards ATP", () => {
@@ -123,6 +184,29 @@ test("boss splits once at half health and cleanup resets battle state", () => {
   assert.equal(runtime.effects.length, 0);
   assert.equal(runtime.atp, 160);
   assert.equal(runtime.tissueIntegrity, 100);
+});
+
+test("boss split mini viruses continue moving downward on both routes", () => {
+  const runtime = createBattleRuntimeState();
+  const enemies = new EnemySystem(runtime);
+  const damage = new DamageSystem(runtime);
+  const boss = new BossSystem(runtime, enemies);
+
+  const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0.5);
+  damage.apply(bossEnemy.id, 410);
+  boss.update();
+
+  const miniViruses = runtime.enemies.filter((enemy) => enemy.kind === "miniVirus");
+  assert.equal(miniViruses.length, 6);
+  assert.ok(miniViruses.some((enemy) => enemy.routeId === "left"));
+  assert.ok(miniViruses.some((enemy) => enemy.routeId === "right"));
+
+  const before = new Map(miniViruses.map((enemy) => [enemy.id, enemy.y]));
+  enemies.update(1200);
+
+  for (const enemy of runtime.enemies.filter((item) => item.kind === "miniVirus")) {
+    assert.ok(enemy.y > (before.get(enemy.id) ?? 0), `${enemy.id} should continue downward`);
+  }
 });
 
 test("wave system exposes eight normal waves plus boss wave for first level", () => {

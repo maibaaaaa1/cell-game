@@ -3,6 +3,8 @@ import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { CELL_CONFIG } from "../configs/cellConfig.ts";
 import { FIRST_LEVEL_CELL_ORDER, FIRST_LEVEL_ROUTE_IDS, FIRST_LEVEL_WAVE_SET_ID } from "../configs/firstLevelConfig.ts";
 import { ROUTE_CONFIG } from "../configs/routeConfig.ts";
+import { DEPLOY_SLOT_VISUAL_RADIUS, findDeploySlotAtPoint, type DeploySlotHitArea } from "../game/deploySlotHitTest.ts";
+import { shouldShowDebugOverlay } from "../game/firstLevelPresentation.ts";
 import { AudioCueSystem } from "../systems/AudioCueSystem.ts";
 import { ATPSystem } from "../systems/ATPSystem.ts";
 import { BattleLoopSystem } from "../systems/BattleLoopSystem.ts";
@@ -17,7 +19,7 @@ import { TargetingSystem } from "../systems/TargetingSystem.ts";
 import { WaveSystem } from "../systems/WaveSystem.ts";
 import type { BattleState, CellKind, EnemyKind, LevelConfig, SkillKind } from "../types/game.ts";
 
-type SlotView = { id: string; x: number; y: number; radius: number };
+type SlotView = DeploySlotHitArea;
 
 const PLAYABLE_CELLS = FIRST_LEVEL_CELL_ORDER;
 
@@ -41,6 +43,7 @@ export class BattleScene extends Phaser.Scene {
   private readonly cellViews = new Map<string, Phaser.GameObjects.Container>();
   private readonly projectileViews = new Map<string, Phaser.GameObjects.Arc>();
   private readonly effectViews = new Set<Phaser.GameObjects.GameObject>();
+  private readonly debugEnabled = typeof window !== "undefined" && shouldShowDebugOverlay(window.location.search);
 
   constructor(level: LevelConfig, onSaveChanged: () => void, soundEnabled: boolean) {
     super("BattleScene");
@@ -138,7 +141,8 @@ export class BattleScene extends Phaser.Scene {
 
   private placeSelectedAt(x: number, y: number): void {
     if (!this.selectedCell || !this.cells || this.runtime.status !== "playing") {
-      this.runtime.message = "先选择巨噬细胞或NK细胞。";
+      const slot = this.getSlotAt(x, y);
+      this.runtime.message = this.debugEnabled && slot ? `Debug命中：${slot.id}` : "先选择巨噬细胞或NK细胞。";
       this.emitState(true);
       return;
     }
@@ -206,10 +210,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawCore(): void {
-    const core = this.add.rectangle(this.width - 24, this.centerY, 30, this.height * 0.56, 0xff7aa2, 0.9);
+    const core = this.add.rectangle(this.centerX, this.height - 24, this.width * 0.62, 34, 0xff7aa2, 0.9);
     core.setStrokeStyle(3, 0xffffff, 0.9);
     this.add
-      .text(this.width - 24, this.centerY, "核心\n组织", {
+      .text(this.centerX, this.height - 24, "核心组织防线", {
         fontFamily: "system-ui",
         fontSize: "13px",
         fontStyle: "900",
@@ -222,7 +226,7 @@ export class BattleScene extends Phaser.Scene {
   private drawSlots(): void {
     this.slots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => {
       const world = this.toWorld(slot.x, slot.y);
-      const radius = 24;
+      const radius = DEPLOY_SLOT_VISUAL_RADIUS;
       const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.2);
       view.setStrokeStyle(3, 0x38bdf8, 0.72);
       this.slotDiscs.set(slot.id, view);
@@ -555,7 +559,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private getSlotAt(x: number, y: number): SlotView | null {
-    return this.slots.find((slot) => Phaser.Math.Distance.Between(x, y, slot.x, slot.y) <= slot.radius + 8) ?? null;
+    return findDeploySlotAtPoint(this.slots, x, y);
   }
 
   private toWorld(x: number, y: number): { x: number; y: number } {

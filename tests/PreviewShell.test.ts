@@ -59,6 +59,26 @@ test("first level bottom action bar exposes macrophage and NK with teaching cost
   );
 });
 
+test("battle page layout keeps HUD, canvas, and bottom action bar in one viewport", () => {
+  const gameShell = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.ok(gameShell.includes("battle-page-active"));
+  assert.ok(styles.includes("body.battle-page-active"));
+  assert.match(styles, /\.game-shell\s*{[^}]*position: fixed;/s);
+  assert.match(styles, /\.game-shell\s*{[^}]*height: 100dvh;/s);
+  assert.match(styles, /\.battle-canvas-frame\s*{[^}]*flex: 1 1 0;/s);
+  assert.match(styles, /\.battle-action-bar\s*{[^}]*flex: 0 0 auto;/s);
+  assert.match(styles, /\.phaser-host\s*{[^}]*min-height: 0;/s);
+});
+
+test("first level core is drawn at the bottom instead of the old right side", () => {
+  const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
+
+  assert.ok(source.includes("this.height - 24"));
+  assert.ok(!source.includes("this.width - 24, this.centerY"));
+});
+
 test("restart command is emitted from the shared battle bus command", () => {
   let received = "";
   const unsubscribe = onBattleCommand((command) => {
