@@ -18,6 +18,8 @@ export class WaveSystem implements BattleSystem {
   private readonly enemies?: EnemySystem;
   private nextWaveAt = 0;
   private elapsed = 0;
+  private currentWaveStartedAt = 0;
+  private tutorialMessageShown = false;
   private pendingSpawns: PendingSpawn[] = [];
 
   constructor(waveSetId = "legacyTwentyWave", runtime?: BattleRuntimeState, enemies?: EnemySystem) {
@@ -26,7 +28,9 @@ export class WaveSystem implements BattleSystem {
     this.enemies = enemies;
     if (this.runtime) {
       this.runtime.maxWave = this.maxWave;
+      this.runtime.message = this.waveSet.initialMessage ?? this.runtime.message;
     }
+    this.nextWaveAt = this.waveSet.initialPreparationMs ?? 0;
   }
 
   get maxWave(): number {
@@ -53,6 +57,7 @@ export class WaveSystem implements BattleSystem {
 
     const delta = maybeDelta ?? _timeOrDelta;
     this.elapsed += delta;
+    this.updatePreparationMessage();
     this.spawnReadyEnemies();
 
     if (this.pendingSpawns.length > 0 || this.runtime.enemies.length > 0 || this.elapsed < this.nextWaveAt) {
@@ -82,22 +87,25 @@ export class WaveSystem implements BattleSystem {
     }
 
     this.runtime.wave = nextWave;
-    const spawnInterval = BATTLE_BALANCE_CONFIG.combat.firstLevelSpawnIntervalMs;
-    let spawnIndex = 0;
-    wave.groups.forEach((group, groupIndex) => {
+    this.currentWaveStartedAt = this.elapsed;
+    let lastSpawnAt = this.elapsed;
+    wave.groups.forEach((group) => {
+      const delayMs = group.delayMs ?? 0;
+      const intervalMs = group.intervalMs ?? BATTLE_BALANCE_CONFIG.combat.firstLevelSpawnIntervalMs;
       for (let index = 0; index < group.count; index += 1) {
+        const spawnAt = this.elapsed + delayMs + index * intervalMs;
         this.pendingSpawns.push({
           enemy: group.enemy,
-          route: this.routeFor(group.route, index + groupIndex),
-          spawnAt: this.elapsed + spawnIndex * spawnInterval
+          route: this.routeFor(group.route, index),
+          spawnAt
         });
-        spawnIndex += 1;
+        lastSpawnAt = Math.max(lastSpawnAt, spawnAt);
       }
     });
-    this.runtime.message = `第${nextWave}波：${wave.label}`;
+    this.runtime.message = wave.preWaveMessage ?? `第${nextWave}波：${wave.label}`;
     this.spawnReadyEnemies();
-    const spawnDuration = Math.max(0, spawnIndex - 1) * spawnInterval;
-    this.nextWaveAt = this.elapsed + spawnDuration + this.preparationAfterWave(nextWave);
+    const minimumWaveEndAt = this.currentWaveStartedAt + (wave.minDurationMs ?? 0);
+    this.nextWaveAt = Math.max(lastSpawnAt, minimumWaveEndAt) + this.preparationAfterWave(nextWave);
   }
 
   private repeat(kind: EnemyKind, count: number): EnemyKind[] {
@@ -110,8 +118,14 @@ export class WaveSystem implements BattleSystem {
 
   cleanup(): void {
     this.elapsed = 0;
-    this.nextWaveAt = 0;
+    this.nextWaveAt = this.waveSet.initialPreparationMs ?? 0;
+    this.currentWaveStartedAt = 0;
+    this.tutorialMessageShown = false;
     this.pendingSpawns = [];
+  }
+
+  getInitialPreparationMs(): number {
+    return this.waveSet.initialPreparationMs ?? 0;
   }
 
   getPendingSpawnCount(): number {
@@ -124,6 +138,14 @@ export class WaveSystem implements BattleSystem {
 
   getSpawnIntervalMs(): number {
     return BATTLE_BALANCE_CONFIG.combat.firstLevelSpawnIntervalMs;
+  }
+
+  getWaveMinDurationMs(wave: number): number {
+    return this.waveSet.waves.find((item) => item.wave === wave)?.minDurationMs ?? 0;
+  }
+
+  getTotalEnemyCount(): number {
+    return this.waveSet.waves.reduce((sum, wave) => sum + wave.groups.reduce((waveSum, group) => waveSum + group.count, 0), 0);
   }
 
   private spawnReadyEnemies(): void {
@@ -146,6 +168,20 @@ export class WaveSystem implements BattleSystem {
     return wave === this.maxWave - 1
       ? BATTLE_BALANCE_CONFIG.combat.firstLevelBossPreparationMs
       : BATTLE_BALANCE_CONFIG.combat.firstLevelNormalPreparationMs;
+  }
+
+  private updatePreparationMessage(): void {
+    if (!this.runtime || this.runtime.wave > 0 || this.tutorialMessageShown) {
+      return;
+    }
+
+    const tutorialAt = this.waveSet.tutorialMessageMs;
+    if (tutorialAt === undefined || this.elapsed < tutorialAt) {
+      return;
+    }
+
+    this.runtime.message = this.waveSet.tutorialMessage ?? this.runtime.message;
+    this.tutorialMessageShown = true;
   }
 
   private routeFor(route: "left" | "right" | "mixed" | undefined, index: number): BattleRouteSide {

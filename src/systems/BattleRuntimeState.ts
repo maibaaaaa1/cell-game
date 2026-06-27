@@ -57,6 +57,8 @@ export interface BattleRuntimeState {
   maxWave: number;
   status: BattleStatus;
   message: string;
+  gameSpeed: 1 | 2;
+  levelSpeedMultiplier: number;
   selectedCell?: CellKind;
   enemies: RuntimeEnemy[];
   cells: RuntimeCell[];
@@ -74,6 +76,8 @@ export interface BattleRuntimeOverrides {
   atp?: number;
   tissueIntegrity?: number;
   maxWave?: number;
+  gameSpeed?: 1 | 2;
+  levelSpeedMultiplier?: number;
 }
 
 export function createBattleRuntimeState(overrides: BattleRuntimeOverrides = {}): BattleRuntimeState {
@@ -85,6 +89,8 @@ export function createBattleRuntimeState(overrides: BattleRuntimeOverrides = {})
     maxWave: overrides.maxWave ?? 9,
     status: "playing" as BattleStatus,
     message: "选择巨噬细胞或NK细胞，点击免疫驻点部署。",
+    gameSpeed: overrides.gameSpeed ?? BATTLE_BALANCE_CONFIG.combat.defaultGameSpeed,
+    levelSpeedMultiplier: overrides.levelSpeedMultiplier ?? BATTLE_BALANCE_CONFIG.combat.firstLevelSpeedMultiplier,
     selectedCell: undefined,
     enemies: [],
     cells: [],
@@ -102,6 +108,8 @@ export function createBattleRuntimeState(overrides: BattleRuntimeOverrides = {})
       this.wave = 0;
       this.status = "playing";
       this.message = "选择巨噬细胞或NK细胞，点击免疫驻点部署。";
+      this.gameSpeed = BATTLE_BALANCE_CONFIG.combat.defaultGameSpeed;
+      this.levelSpeedMultiplier = BATTLE_BALANCE_CONFIG.combat.firstLevelSpeedMultiplier;
       this.selectedCell = undefined;
       this.enemies = [];
       this.cells = [];

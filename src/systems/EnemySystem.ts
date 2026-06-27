@@ -61,9 +61,10 @@ export class EnemySystem implements BattleSystem {
     }
 
     const delta = maybeDelta ?? timeOrDelta;
+    const speedScale = this.runtime.levelSpeedMultiplier * this.runtime.gameSpeed;
     const reached: RuntimeEnemy[] = [];
     for (const enemy of this.runtime.enemies) {
-      enemy.progress = Math.min(1, enemy.progress + (enemy.speed * delta) / 22000);
+      enemy.progress = Math.min(1, enemy.progress + (enemy.speed * speedScale * delta) / 22000);
       const position = this.positionOnRoute(enemy.routeId, enemy.progress);
       enemy.x = position.x;
       enemy.y = position.y;

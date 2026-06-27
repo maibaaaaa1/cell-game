@@ -23,17 +23,27 @@ export interface WaveSpawnGroupConfig {
   count: number;
   route?: "left" | "right" | "mixed";
   delayMs?: number;
+  intervalMs?: number;
 }
 
 export interface WaveConfig {
   wave: number;
   label: string;
+  preWaveMessage?: string;
+  minDurationMs?: number;
+  preparationMs?: number;
   groups: WaveSpawnGroupConfig[];
 }
 
 export interface WaveSetConfig {
   id: string;
   name: string;
+  initialPreparationMs?: number;
+  initialMessage?: string;
+  tutorialMessageMs?: number;
+  tutorialMessage?: string;
+  normalPreparationMs?: number;
+  bossPreparationMs?: number;
   waves: WaveConfig[];
 }
 

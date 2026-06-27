@@ -47,30 +47,35 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(ENEMY_CONFIG.fastVirus.speed, 1.45);
 });
 
-test("first level wave table exactly matches the original design", () => {
-  const waves = WAVE_CONFIG.noseFirstLevel.waves.map((wave) => wave.groups.map((group) => [group.enemy, group.count, group.route ?? "left"]));
+test("first level wave table uses PvZ-style grouped pacing", () => {
+  const waves = WAVE_CONFIG.noseFirstLevel.waves.map((wave) =>
+    wave.groups.map((group) => [group.enemy, group.count, group.route ?? "left", group.delayMs ?? 0, group.intervalMs ?? 0])
+  );
 
   assert.deepEqual(waves, [
-    [["normalVirus", 4, "left"]],
-    [["normalVirus", 6, "left"]],
-    [["normalVirus", 5, "left"], ["fastVirus", 2, "left"]],
-    [["normalVirus", 5, "left"], ["normalVirus", 5, "right"]],
-    [["normalVirus", 6, "mixed"], ["fastVirus", 3, "mixed"]],
-    [["bacteria", 3, "mixed"], ["normalVirus", 6, "mixed"]],
-    [["fastVirus", 6, "mixed"], ["normalVirus", 8, "mixed"]],
-    [["normalVirus", 8, "mixed"], ["fastVirus", 4, "mixed"], ["bacteria", 3, "mixed"]],
-    [["mutantVirusCluster", 1, "mixed"]]
+    [["normalVirus", 2, "left", 0, 2000], ["normalVirus", 2, "left", 3000, 2000]],
+    [["normalVirus", 3, "left", 0, 1800], ["normalVirus", 3, "left", 4000, 1800]],
+    [["normalVirus", 4, "left", 0, 1700], ["fastVirus", 2, "left", 5000, 1500]],
+    [["normalVirus", 4, "left", 0, 1800], ["normalVirus", 4, "right", 3000, 1800]],
+    [["normalVirus", 4, "left", 0, 1600], ["fastVirus", 3, "right", 3000, 1500], ["normalVirus", 2, "left", 8000, 1600]],
+    [["bacteria", 2, "left", 0, 2200], ["normalVirus", 5, "right", 3000, 1600], ["bacteria", 1, "left", 9000, 2200]],
+    [["fastVirus", 4, "left", 0, 1500], ["normalVirus", 6, "right", 2000, 1500], ["bacteria", 2, "right", 8000, 2000]],
+    [["normalVirus", 6, "left", 0, 1400], ["fastVirus", 4, "right", 2000, 1400], ["bacteria", 2, "left", 8000, 2000], ["bacteria", 1, "right", 12000, 2000]],
+    [["mutantVirusCluster", 1, "mixed", 0, 1000]]
   ]);
 });
 
-test("first level wave pacing uses spawn interval, five second rests, and eight second boss prep", () => {
+test("first level wave pacing uses opening prep, five second rests, and ten second boss prep", () => {
   const waves = new WaveSystem("noseFirstLevel");
 
   assert.equal(waves.maxWave, 9);
-  assert.equal(waves.getSpawnIntervalMs(), 750);
+  assert.equal(waves.getInitialPreparationMs(), 8000);
   assert.equal(waves.getPreparationAfterWave(1), 5000);
-  assert.equal(waves.getPreparationAfterWave(8), 8000);
+  assert.equal(waves.getPreparationAfterWave(8), 10000);
   assert.equal(waves.getPreparationAfterWave(9), 0);
+  assert.ok(waves.getWaveMinDurationMs(9) >= 20000);
+  assert.equal(BATTLE_BALANCE_CONFIG.combat.defaultGameSpeed, 1);
+  assert.equal(BATTLE_BALANCE_CONFIG.combat.firstLevelSpeedMultiplier, 0.9);
 });
 
 test("first level routes move from top entrance toward bottom tissue core", () => {
@@ -202,7 +207,8 @@ test("boss splits once at half health and cleanup resets battle state", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0);
-  damage.apply(bossEnemy.id, 410);
+  assert.equal(bossEnemy.maxHealth, 1000);
+  damage.apply(bossEnemy.id, 510);
   boss.update();
   assert.equal(runtime.enemies.filter((enemy) => enemy.kind === "miniVirus").length, 6);
 
@@ -230,7 +236,7 @@ test("boss split mini viruses continue moving downward on both routes", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0.5);
-  damage.apply(bossEnemy.id, 410);
+  damage.apply(bossEnemy.id, 510);
   boss.update();
 
   const miniViruses = runtime.enemies.filter((enemy) => enemy.kind === "miniVirus");
@@ -254,19 +260,79 @@ test("wave system exposes eight normal waves plus boss wave for first level", ()
   assert.equal(waves.getWaveLabel(9), "Boss 变异病毒团");
 });
 
-test("wave system trickles enemies instead of spawning each wave instantly", () => {
+test("opening preparation delays the first wave and is not affected by future speed state", () => {
+  const runtime = createBattleRuntimeState({ gameSpeed: 2 });
+  const enemies = new EnemySystem(runtime);
+  const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
+
+  waves.update(0, 3000);
+  assert.equal(runtime.wave, 0);
+  assert.equal(runtime.enemies.length, 0);
+  assert.match(runtime.message, /巨噬细胞/);
+
+  waves.update(0, 4999);
+  assert.equal(runtime.wave, 0);
+  assert.equal(runtime.enemies.length, 0);
+
+  waves.update(0, 1);
+  assert.equal(runtime.wave, 1);
+  assert.equal(runtime.enemies.length, 1);
+});
+
+test("wave system spawns enemies by group delay and interval instead of instantly", () => {
   const runtime = createBattleRuntimeState();
   const enemies = new EnemySystem(runtime);
   const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
 
-  waves.update(0, 16);
+  waves.update(0, 8000);
   assert.equal(runtime.wave, 1);
   assert.equal(runtime.enemies.length, 1);
   assert.equal(waves.getPendingSpawnCount(), 3);
 
-  waves.update(0, 750);
+  waves.update(0, 1999);
+  assert.equal(runtime.enemies.length, 1);
+
+  waves.update(0, 1);
   assert.equal(runtime.enemies.length, 2);
   assert.equal(waves.getPendingSpawnCount(), 2);
+});
+
+test("fourth wave is the first deliberate double-route wave", () => {
+  const waves = WAVE_CONFIG.noseFirstLevel.waves;
+
+  assert.ok(waves.slice(0, 3).every((wave) => wave.groups.every((group) => group.route === "left")));
+  assert.deepEqual(
+    waves[3].groups.map((group) => group.route),
+    ["left", "right"]
+  );
+  assert.match(waves[3].preWaveMessage ?? "", /双路线/);
+});
+
+test("first level enemy count matches the stage 2.10 teaching design", () => {
+  const waves = new WaveSystem("noseFirstLevel");
+
+  assert.equal(waves.getTotalEnemyCount(), 67);
+  assert.equal(WAVE_CONFIG.noseFirstLevel.waves.length, 9);
+});
+
+test("boss wave has presence and cannot resolve victory instantly", () => {
+  const runtime = createBattleRuntimeState();
+  const enemies = new EnemySystem(runtime);
+  const damage = new DamageSystem(runtime);
+  const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
+
+  runtime.wave = 8;
+  waves.startNextWave();
+  const bossEnemy = runtime.enemies.find((enemy) => enemy.kind === "mutantVirusCluster");
+  assert.ok(bossEnemy);
+  damage.apply(bossEnemy.id, 2000);
+  assert.equal(runtime.defeatedBoss, true);
+
+  waves.update(0, 19000);
+  assert.equal(runtime.status, "playing");
+
+  waves.update(0, 1000);
+  assert.equal(runtime.status, "victory");
 });
 
 test("fully taught first level remains winnable after pacing calibration", () => {
