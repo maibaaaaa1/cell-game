@@ -85,9 +85,11 @@ export interface RandomEventConfig {
 
 export interface BattleState {
   life: number;
+  tissueIntegrity: number;
   atp: number;
   wave: number;
   maxWave: number;
+  feverTemperature: number;
   selectedCell?: CellKind;
   paused: boolean;
   pauseMenuOpen?: boolean;

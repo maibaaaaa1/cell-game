@@ -1,59 +1,38 @@
 import type { EnemyKind } from "../types/game";
+import { WAVE_CONFIG } from "../configs/waveConfig";
 
 export class WaveSystem {
-  readonly maxWave = 20;
+  readonly name = "WaveSystem";
+  private readonly waveSetId: string;
+
+  constructor(waveSetId = "legacyTwentyWave") {
+    this.waveSetId = waveSetId;
+  }
+
+  get maxWave(): number {
+    return this.waveSet.waves.length;
+  }
 
   buildWave(wave: number): EnemyKind[] {
-    if (wave >= 20) {
-      return ["cancerKing"];
+    const waveConfig = this.waveSet.waves.find((item) => item.wave === wave);
+    if (!waveConfig) {
+      return [];
     }
 
-    if (wave <= 5) {
-      return this.repeat("bacteria", 4 + wave);
-    }
-
-    if (wave <= 10) {
-      return [...this.repeat("bacteria", 4), ...this.repeat("fluVirus", wave - 3)];
-    }
-
-    if (wave <= 15) {
-      return [
-        ...this.repeat("fluVirus", 4),
-        ...this.repeat("resistantBacteria", Math.max(2, wave - 10)),
-        ...this.repeat("mutantVirus", Math.floor((wave - 9) / 2))
-      ];
-    }
-
-    return [
-      ...this.repeat("bacteria", 6),
-      ...this.repeat("fluVirus", 5),
-      ...this.repeat("resistantBacteria", 3),
-      ...this.repeat("mutantVirus", 3),
-      ...this.repeat("cancerCell", wave - 15)
-    ];
+    return waveConfig.groups.flatMap((group) => this.repeat(group.enemy, group.count));
   }
 
   getWaveLabel(wave: number): string {
-    if (wave <= 5) {
-      return "普通细菌";
-    }
-
-    if (wave <= 10) {
-      return "病毒来袭";
-    }
-
-    if (wave <= 15) {
-      return "耐药菌压力";
-    }
-
-    if (wave <= 19) {
-      return "混合入侵";
-    }
-
-    return "Boss 癌王";
+    return this.waveSet.waves.find((item) => item.wave === wave)?.label ?? "未知波次";
   }
 
   private repeat(kind: EnemyKind, count: number): EnemyKind[] {
     return Array.from({ length: count }, () => kind);
   }
+
+  private get waveSet() {
+    return WAVE_CONFIG[this.waveSetId] ?? WAVE_CONFIG.legacyTwentyWave;
+  }
+
+  cleanup(): void {}
 }

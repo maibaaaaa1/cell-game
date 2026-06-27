@@ -1,7 +1,9 @@
 import Phaser from "phaser";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
 import { CELL_CONFIGS, CELL_ORDER } from "../configs/cells";
 import { SKILL_CONFIGS, SKILL_ORDER } from "../configs/skills";
+import { TEXT_CONFIG } from "../configs/textConfig";
 import { BattleScene } from "../scenes/BattleScene";
 import { onBattleState, sendBattleCommand } from "../systems/gameBus";
 import type { BattleState, CellKind, LevelConfig } from "../types/game";
@@ -15,9 +17,11 @@ interface GameShellProps {
 
 const INITIAL_STATE: BattleState = {
   life: 20,
+  tissueIntegrity: 20,
   atp: 180,
   wave: 0,
   maxWave: 20,
+  feverTemperature: 37,
   paused: false,
   pauseMenuOpen: false,
   message: "加载免疫战场中。",
@@ -65,8 +69,8 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: hostRef.current,
-      width: 960,
-      height: 560,
+      width: BATTLE_BALANCE_CONFIG.canvas.width,
+      height: BATTLE_BALANCE_CONFIG.canvas.height,
       backgroundColor: "#f8fbff",
       scale: {
         mode: Phaser.Scale.FIT,
@@ -100,8 +104,8 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
       return;
     }
 
-    const x = ((event.clientX - rect.left) / rect.width) * 960;
-    const y = ((event.clientY - rect.top) / rect.height) * 560;
+    const x = ((event.clientX - rect.left) / rect.width) * BATTLE_BALANCE_CONFIG.canvas.width;
+    const y = ((event.clientY - rect.top) / rect.height) * BATTLE_BALANCE_CONFIG.canvas.height;
     sendBattleCommand({ type: "select-cell", cell });
     sendBattleCommand({ type: "place-selected", x, y });
     draggedCellRef.current = null;
@@ -113,22 +117,23 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
       return;
     }
 
-    const x = ((clientX - rect.left) / rect.width) * 960;
-    const y = ((clientY - rect.top) / rect.height) * 560;
+    const x = ((clientX - rect.left) / rect.width) * BATTLE_BALANCE_CONFIG.canvas.width;
+    const y = ((clientY - rect.top) / rect.height) * BATTLE_BALANCE_CONFIG.canvas.height;
     sendBattleCommand({ type: "place-selected", x, y });
   };
 
   return (
-    <main className="game-shell min-h-screen px-3 py-3 text-slate-950 sm:px-5">
-      <section className="mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-7xl flex-col gap-3">
-        <header className="grid gap-3 rounded-2xl border border-white/80 bg-white/85 p-3 shadow-soft lg:grid-cols-[1fr_auto]">
-          <div className="grid grid-cols-2 gap-2 text-sm font-black sm:grid-cols-6">
-            <HudItem label="生命值" value={state.life} tone="text-danger" />
+    <main className="game-shell min-h-screen px-3 py-3 text-slate-950">
+      <div className="landscape-warning">{TEXT_CONFIG.orientationWarning}</div>
+      <section className="portrait-battle-shell mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[540px] flex-col gap-2">
+        <header className="battle-hud grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
+          <div className="grid grid-cols-3 gap-2 text-sm font-black">
+            <HudItem label="组织耐久" value={state.tissueIntegrity} tone="text-danger" />
             <HudItem label="ATP能量" value={state.atp} tone="text-amber-600" />
             <HudItem label="当前波次" value={`${state.wave}/${state.maxWave}`} tone="text-lymph" />
             <HudItem label="Combo" value={state.combo > 1 ? `x${state.combo}` : "-"} tone={state.combo >= 10 ? "text-orange-600" : "text-cyan-700"} />
+            <HudItem label="体温" value={`${state.feverTemperature.toFixed(1)}℃`} tone="text-rose-600" />
             <HudItem label="击杀" value={totalKills} tone="text-emerald-600" />
-            <HudItem label="事件" value={state.randomEventName ?? "待触发"} tone="text-slate-600" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button className="secondary-button min-h-10 px-4" onClick={() => sendBattleCommand({ type: "toggle-pause" })}>
@@ -143,12 +148,13 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
         </header>
 
-        <div className="rounded-2xl border border-white/80 bg-white/70 p-2 shadow-soft">
+        <div className="battle-canvas-frame rounded-2xl border border-white/80 bg-white/70 p-2 shadow-soft">
           <div
             ref={hostRef}
-            className={`phaser-host relative aspect-[12/7] w-full overflow-hidden rounded-xl bg-white ${
+            className={`phaser-host relative w-full overflow-hidden rounded-xl bg-white ${
               state.stormActive ? "storm-border" : ""
             }`}
+            style={{ aspectRatio: `${BATTLE_BALANCE_CONFIG.canvas.width} / ${BATTLE_BALANCE_CONFIG.canvas.height}` }}
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDropOnCanvas}
             onPointerUpCapture={(event) => placeAtClientPoint(event.clientX, event.clientY)}
@@ -157,8 +163,8 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
         </div>
 
-        <footer className="grid gap-3 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-soft xl:grid-cols-[1fr_360px]">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <footer className="battle-action-bar grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
+          <div className="cell-card-strip grid grid-cols-3 gap-2">
             {CELL_ORDER.map((kind) => {
               const cell = CELL_CONFIGS[kind];
               const selected = state.selectedCell === kind;

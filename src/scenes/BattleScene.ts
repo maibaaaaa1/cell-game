@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
 import { CELL_CONFIGS } from "../configs/cells";
 import { ENEMY_CONFIGS } from "../configs/enemies";
 import { SKILL_CONFIGS } from "../configs/skills";
@@ -6,6 +7,8 @@ import { CellTower } from "../entities/CellTower";
 import { Enemy } from "../entities/Enemy";
 import { Projectile } from "../entities/Projectile";
 import { AudioCueSystem } from "../systems/AudioCueSystem";
+import { BattleLoopSystem } from "../systems/BattleLoopSystem";
+import { createBattleLoop } from "../systems/BattleSystemFactory";
 import { BuffSystem } from "../systems/BuffSystem";
 import { emitBattleState, onBattleCommand } from "../systems/gameBus";
 import { GridSystem, type GridSlot } from "../systems/GridSystem";
@@ -36,6 +39,7 @@ export class BattleScene extends Phaser.Scene {
   private readonly randomEvents = new RandomEventSystem();
   private readonly buffs = new BuffSystem();
   private readonly audio: AudioCueSystem;
+  private battleLoop?: BattleLoopSystem;
 
   private cells = new Map<string, CellTower>();
   private summons: CellTower[] = [];
@@ -72,9 +76,11 @@ export class BattleScene extends Phaser.Scene {
 
   private state: BattleState = {
     life: 20,
+    tissueIntegrity: 20,
     atp: 180,
     wave: 0,
     maxWave: 20,
+    feverTemperature: 37,
     paused: false,
     pauseMenuOpen: false,
     message: "选择底部细胞卡牌，然后点击地图塔位部署。",
@@ -108,6 +114,7 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     this.resetRuntime();
+    this.battleLoop = this.createBattleLoop();
     this.grid.draw(this, this.level.mapKey);
     this.createFeedbackLayers();
     this.randomEvent = this.randomEvents.pick();
@@ -148,6 +155,7 @@ export class BattleScene extends Phaser.Scene {
       }
 
       if (command.type === "restart") {
+        this.cleanupBattleResources("restart", { disposeAudio: false });
         this.scene.restart();
       }
     });
@@ -155,8 +163,8 @@ export class BattleScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.releaseCommandListener);
     if (!this.destroyCleanupRegistered) {
       this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+        this.cleanupBattleResources("destroy", { disposeAudio: true });
         this.releaseCommandListener();
-        void this.audio.dispose();
       });
       this.destroyCleanupRegistered = true;
     }
@@ -175,6 +183,7 @@ export class BattleScene extends Phaser.Scene {
     this.updateCooldowns(time);
     this.updateComboTimeout(time);
     this.updateDangerPressure(time);
+    this.battleLoop?.update(time, delta);
     this.emitState();
 
     if (this.isPaused || this.isFinished) {
@@ -218,9 +227,11 @@ export class BattleScene extends Phaser.Scene {
     this.cooldownUntil.cart = 0;
     this.state = {
       life: 20,
+      tissueIntegrity: 20,
       atp: 180,
       wave: 0,
       maxWave: this.waves.maxWave,
+      feverTemperature: 37,
       paused: false,
       pauseMenuOpen: false,
       message: "选择底部细胞卡牌，然后点击地图塔位部署。",
@@ -246,6 +257,10 @@ export class BattleScene extends Phaser.Scene {
     };
   }
 
+  private createBattleLoop(): BattleLoopSystem {
+    return createBattleLoop(this, this.waves);
+  }
+
   private applyRandomEventIntro(): void {
     if (!this.randomEvent) {
       return;
@@ -257,10 +272,14 @@ export class BattleScene extends Phaser.Scene {
 
   private createFeedbackLayers(): void {
     this.highlightGraphics = this.add.graphics().setDepth(4);
-    this.dangerOverlay = this.add.rectangle(480, 280, 960, 560, 0xbe123c, 0).setDepth(80);
-    this.flashOverlay = this.add.rectangle(480, 280, 960, 560, 0xffffff, 0).setDepth(90);
+    this.dangerOverlay = this.add
+      .rectangle(this.centerX, this.centerY, BATTLE_BALANCE_CONFIG.canvas.width, BATTLE_BALANCE_CONFIG.canvas.height, 0xbe123c, 0)
+      .setDepth(80);
+    this.flashOverlay = this.add
+      .rectangle(this.centerX, this.centerY, BATTLE_BALANCE_CONFIG.canvas.width, BATTLE_BALANCE_CONFIG.canvas.height, 0xffffff, 0)
+      .setDepth(90);
     this.comboText = this.add
-      .text(480, 36, "", {
+      .text(this.centerX, 36, "", {
         fontFamily: "system-ui",
         fontSize: "34px",
         fontStyle: "900",
@@ -469,7 +488,7 @@ export class BattleScene extends Phaser.Scene {
     this.nextMicroRewardAt = time + Phaser.Math.Between(5000, 10000);
     this.cameras.main.shake(90, 0.0025);
     this.audio.play("micro", 1);
-    this.floatText(480, 72, `${tip} +${reward} ATP`, "#0f766e", 24);
+    this.floatText(this.centerX, 72, `${tip} +${reward} ATP`, "#0f766e", 24);
     this.setMessage(`${tip}：获得${reward} ATP。`);
   }
 
@@ -506,7 +525,7 @@ export class BattleScene extends Phaser.Scene {
     this.enemies.push(enemy);
     unlockCodex(kind);
     if (kind === "cancerKing") {
-      this.floatText(480, 250, "癌王出现", "#be123c", 42);
+      this.floatText(this.centerX, this.centerY - 30, "癌王出现", "#be123c", 42);
       this.cancerPressure();
     }
     return enemy;
@@ -555,6 +574,7 @@ export class BattleScene extends Phaser.Scene {
 
       if (enemy.x >= this.grid.coreX) {
         this.state.life = Math.max(0, this.state.life - enemy.damageToCore);
+        this.state.tissueIntegrity = this.state.life;
         enemy.destroy();
         this.setMessage(`${ENEMY_CONFIGS[enemy.kind].name}突破防线，核心器官受损！`);
         if (this.state.life <= 0) {
@@ -714,14 +734,14 @@ export class BattleScene extends Phaser.Scene {
     if (this.combo === 3) {
       this.state.atp += 20;
       this.flash(0xfef08a, 0.18, 180);
-      this.floatText(480, 108, "x3 ATP奖励 +20", "#ca8a04", 24);
+      this.floatText(this.centerX, 108, "x3 ATP奖励 +20", "#ca8a04", 24);
     }
 
     if (this.combo === 5) {
       this.state.atp += 35;
       this.buffs.add("comboSpeed", "Combo攻速", 1.22, now + 9000);
       this.cameras.main.shake(160, 0.004);
-      this.floatText(480, 108, "x5 攻速提升", "#2563eb", 26);
+      this.floatText(this.centerX, 108, "x5 攻速提升", "#2563eb", 26);
     }
 
     if (this.combo >= 10 && this.combo % 10 === 0) {
@@ -778,7 +798,7 @@ export class BattleScene extends Phaser.Scene {
     this.flash(0xffffff, 0.86, 260);
     this.cameras.main.shake(360, 0.009);
     this.audio.play("clear", 2);
-    this.floatText(480, 138, "免疫风暴模式", "#ea580c", 36);
+    this.floatText(this.centerX, 138, "免疫风暴模式", "#ea580c", 36);
     this.setMessage("Combo x10！免疫风暴：全屏攻速提升，敌人减速。");
   }
 
@@ -807,12 +827,14 @@ export class BattleScene extends Phaser.Scene {
       this.onSaveChanged();
     }
 
-    const panel = this.add.rectangle(480, 280, 560, 210, 0xffffff, 0.94);
+    this.cleanupBattleResources(victory ? "victory" : "defeat", { disposeAudio: false });
+
+    const panel = this.add.rectangle(this.centerX, this.centerY, 470, 210, 0xffffff, 0.94);
     panel.setStrokeStyle(4, victory ? 0x22c55e : 0xef4444, 1);
     const title = victory ? "防线胜利" : "核心失守";
     const subtitle = victory ? "免疫系统完成本章守护。" : "调整部署顺序，再来一次。";
     this.add
-      .text(480, 242, title, {
+      .text(this.centerX, this.centerY - 38, title, {
         fontFamily: "system-ui",
         fontSize: "40px",
         fontStyle: "900",
@@ -820,7 +842,7 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.add
-      .text(480, 305, subtitle, {
+      .text(this.centerX, this.centerY + 25, subtitle, {
         fontFamily: "system-ui",
         fontSize: "18px",
         fontStyle: "800",
@@ -944,7 +966,44 @@ export class BattleScene extends Phaser.Scene {
     }
 
     this.lastStateEmit = this.time.now;
+    this.state.tissueIntegrity = this.state.life;
     emitBattleState({ ...this.state, selectedCell: this.selectedCell, paused: this.isPaused });
+  }
+
+  private cleanupBattleResources(_reason: string, options: { disposeAudio: boolean }): void {
+    this.battleLoop?.cleanup();
+    this.battleLoop = undefined;
+    this.buffs.clear();
+    for (const enemy of this.enemies) {
+      enemy.destroy();
+    }
+    for (const tower of this.cells.values()) {
+      tower.destroy();
+    }
+    for (const tower of this.summons) {
+      tower.destroy();
+    }
+    for (const projectile of this.projectiles) {
+      projectile.destroy();
+    }
+    this.enemies = [];
+    this.cells.clear();
+    this.summons = [];
+    this.projectiles = [];
+    this.spawnQueue = [];
+    this.time.removeAllEvents();
+    this.tweens.killAll();
+    if (options.disposeAudio) {
+      void this.audio.dispose();
+    }
+  }
+
+  private get centerX(): number {
+    return BATTLE_BALANCE_CONFIG.canvas.width / 2;
+  }
+
+  private get centerY(): number {
+    return BATTLE_BALANCE_CONFIG.canvas.height / 2;
   }
 
   private sayForCell(kind: CellKind): void {
