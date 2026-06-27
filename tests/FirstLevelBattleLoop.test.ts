@@ -3,6 +3,7 @@ import test from "node:test";
 import { BATTLE_BALANCE_CONFIG } from "../src/configs/balanceConfig.ts";
 import { CELL_CONFIG } from "../src/configs/cellConfig.ts";
 import { ENEMY_CONFIG } from "../src/configs/enemyConfig.ts";
+import { ENEMY_CONFIGS } from "../src/configs/enemies.ts";
 import { FIRST_LEVEL_CELL_ORDER } from "../src/configs/firstLevelConfig.ts";
 import { LEVEL_CONFIG } from "../src/configs/levelConfig.ts";
 import { ROUTE_CONFIG } from "../src/configs/routeConfig.ts";
@@ -45,6 +46,10 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(CELL_CONFIG.nk.cost, 70);
   assert.equal(ENEMY_CONFIG.normalVirus.health, 60);
   assert.equal(ENEMY_CONFIG.fastVirus.speed, 1.45);
+  assert.equal(ENEMY_CONFIG.mutantVirusCluster.health, 1600);
+  assert.equal(ENEMY_CONFIG.mutantVirusCluster.speed, 0.3);
+  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.health, 1600);
+  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.speed, 0.3);
 });
 
 test("first level wave table uses PvZ-style grouped pacing", () => {
@@ -53,27 +58,27 @@ test("first level wave table uses PvZ-style grouped pacing", () => {
   );
 
   assert.deepEqual(waves, [
-    [["normalVirus", 2, "left", 0, 2000], ["normalVirus", 2, "left", 3000, 2000]],
-    [["normalVirus", 3, "left", 0, 1800], ["normalVirus", 3, "left", 4000, 1800]],
-    [["normalVirus", 4, "left", 0, 1700], ["fastVirus", 2, "left", 5000, 1500]],
-    [["normalVirus", 4, "left", 0, 1800], ["normalVirus", 4, "right", 3000, 1800]],
-    [["normalVirus", 4, "left", 0, 1600], ["fastVirus", 3, "right", 3000, 1500], ["normalVirus", 2, "left", 8000, 1600]],
-    [["bacteria", 2, "left", 0, 2200], ["normalVirus", 5, "right", 3000, 1600], ["bacteria", 1, "left", 9000, 2200]],
-    [["fastVirus", 4, "left", 0, 1500], ["normalVirus", 6, "right", 2000, 1500], ["bacteria", 2, "right", 8000, 2000]],
-    [["normalVirus", 6, "left", 0, 1400], ["fastVirus", 4, "right", 2000, 1400], ["bacteria", 2, "left", 8000, 2000], ["bacteria", 1, "right", 12000, 2000]],
+    [["normalVirus", 3, "left", 0, 2000], ["normalVirus", 3, "left", 6000, 2000]],
+    [["normalVirus", 4, "left", 0, 1800], ["normalVirus", 4, "left", 7000, 1800]],
+    [["normalVirus", 6, "left", 0, 1700], ["fastVirus", 4, "left", 8000, 1600]],
+    [["normalVirus", 6, "left", 0, 1700], ["normalVirus", 6, "right", 5000, 1700]],
+    [["normalVirus", 5, "left", 0, 1600], ["fastVirus", 4, "right", 4000, 1500], ["normalVirus", 4, "left", 10000, 1600]],
+    [["bacteria", 3, "left", 0, 2200], ["normalVirus", 6, "right", 4000, 1600], ["bacteria", 3, "left", 12000, 2200]],
+    [["fastVirus", 5, "left", 0, 1500], ["normalVirus", 6, "right", 2000, 1500], ["bacteria", 4, "right", 10000, 2000]],
+    [["normalVirus", 7, "left", 0, 1400], ["fastVirus", 5, "right", 3000, 1400], ["bacteria", 3, "left", 10000, 2000], ["bacteria", 3, "right", 14000, 2000]],
     [["mutantVirusCluster", 1, "mixed", 0, 1000]]
   ]);
 });
 
-test("first level wave pacing uses opening prep, five second rests, and ten second boss prep", () => {
+test("first level wave pacing uses opening prep, short rests, and ten second boss prep", () => {
   const waves = new WaveSystem("noseFirstLevel");
 
   assert.equal(waves.maxWave, 9);
   assert.equal(waves.getInitialPreparationMs(), 8000);
-  assert.equal(waves.getPreparationAfterWave(1), 5000);
+  assert.equal(waves.getPreparationAfterWave(1), 2500);
   assert.equal(waves.getPreparationAfterWave(8), 10000);
   assert.equal(waves.getPreparationAfterWave(9), 0);
-  assert.ok(waves.getWaveMinDurationMs(9) >= 20000);
+  assert.ok(waves.getWaveMinDurationMs(9) >= 30000);
   assert.equal(BATTLE_BALANCE_CONFIG.combat.defaultGameSpeed, 1);
   assert.equal(BATTLE_BALANCE_CONFIG.combat.firstLevelSpeedMultiplier, 0.9);
 });
@@ -207,8 +212,9 @@ test("boss splits once at half health and cleanup resets battle state", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0);
-  assert.equal(bossEnemy.maxHealth, 1000);
-  damage.apply(bossEnemy.id, 510);
+  assert.equal(bossEnemy.maxHealth, 1600);
+  assert.equal(bossEnemy.speed, 0.3);
+  damage.apply(bossEnemy.id, 810);
   boss.update();
   assert.equal(runtime.enemies.filter((enemy) => enemy.kind === "miniVirus").length, 6);
 
@@ -236,7 +242,7 @@ test("boss split mini viruses continue moving downward on both routes", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0.5);
-  damage.apply(bossEnemy.id, 510);
+  damage.apply(bossEnemy.id, 810);
   boss.update();
 
   const miniViruses = runtime.enemies.filter((enemy) => enemy.kind === "miniVirus");
@@ -256,7 +262,7 @@ test("wave system exposes eight normal waves plus boss wave for first level", ()
   const waves = new WaveSystem("noseFirstLevel");
 
   assert.equal(waves.maxWave, 9);
-  assert.deepEqual(waves.buildWave(1), ["normalVirus", "normalVirus", "normalVirus", "normalVirus"]);
+  assert.deepEqual(waves.buildWave(1), ["normalVirus", "normalVirus", "normalVirus", "normalVirus", "normalVirus", "normalVirus"]);
   assert.equal(waves.getWaveLabel(9), "Boss 变异病毒团");
 });
 
@@ -287,14 +293,14 @@ test("wave system spawns enemies by group delay and interval instead of instantl
   waves.update(0, 8000);
   assert.equal(runtime.wave, 1);
   assert.equal(runtime.enemies.length, 1);
-  assert.equal(waves.getPendingSpawnCount(), 3);
+  assert.equal(waves.getPendingSpawnCount(), 5);
 
   waves.update(0, 1999);
   assert.equal(runtime.enemies.length, 1);
 
   waves.update(0, 1);
   assert.equal(runtime.enemies.length, 2);
-  assert.equal(waves.getPendingSpawnCount(), 2);
+  assert.equal(waves.getPendingSpawnCount(), 4);
 });
 
 test("fourth wave is the first deliberate double-route wave", () => {
@@ -308,11 +314,15 @@ test("fourth wave is the first deliberate double-route wave", () => {
   assert.match(waves[3].preWaveMessage ?? "", /双路线/);
 });
 
-test("first level enemy count matches the stage 2.10 teaching design", () => {
+test("first level enemy count matches the stage 2.11 density target", () => {
   const waves = new WaveSystem("noseFirstLevel");
 
-  assert.equal(waves.getTotalEnemyCount(), 67);
+  assert.equal(waves.getTotalEnemyCount(), 95);
+  assert.ok(waves.getTotalEnemyCount() - 1 >= 80);
+  assert.ok(waves.getTotalEnemyCount() - 1 <= 110);
   assert.equal(WAVE_CONFIG.noseFirstLevel.waves.length, 9);
+  assert.ok(waves.buildWave(1).length >= 6);
+  assert.ok(waves.buildWave(8).length >= 18);
 });
 
 test("boss wave has presence and cannot resolve victory instantly", () => {
@@ -328,7 +338,7 @@ test("boss wave has presence and cannot resolve victory instantly", () => {
   damage.apply(bossEnemy.id, 2000);
   assert.equal(runtime.defeatedBoss, true);
 
-  waves.update(0, 19000);
+  waves.update(0, 29000);
   assert.equal(runtime.status, "playing");
 
   waves.update(0, 1000);

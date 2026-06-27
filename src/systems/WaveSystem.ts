@@ -60,15 +60,19 @@ export class WaveSystem implements BattleSystem {
     this.updatePreparationMessage();
     this.spawnReadyEnemies();
 
-    if (this.pendingSpawns.length > 0 || this.runtime.enemies.length > 0 || this.elapsed < this.nextWaveAt) {
+    if (this.pendingSpawns.length > 0 || this.elapsed < this.nextWaveAt) {
       return;
     }
 
     if (this.runtime.wave >= this.maxWave) {
-      if (this.runtime.defeatedBoss) {
+      if (this.runtime.defeatedBoss && this.runtime.enemies.length === 0) {
         this.runtime.status = "victory";
         this.runtime.message = "鼻腔保卫战胜利！";
       }
+      return;
+    }
+
+    if (this.runtime.enemies.length > BATTLE_BALANCE_CONFIG.combat.firstLevelWaveAdvanceEnemyThreshold) {
       return;
     }
 
@@ -148,6 +152,10 @@ export class WaveSystem implements BattleSystem {
     return this.waveSet.waves.reduce((sum, wave) => sum + wave.groups.reduce((waveSum, group) => waveSum + group.count, 0), 0);
   }
 
+  getWaveAdvanceEnemyThreshold(): number {
+    return BATTLE_BALANCE_CONFIG.combat.firstLevelWaveAdvanceEnemyThreshold;
+  }
+
   private spawnReadyEnemies(): void {
     if (!this.enemies || this.pendingSpawns.length === 0) {
       return;
@@ -166,8 +174,8 @@ export class WaveSystem implements BattleSystem {
     }
 
     return wave === this.maxWave - 1
-      ? BATTLE_BALANCE_CONFIG.combat.firstLevelBossPreparationMs
-      : BATTLE_BALANCE_CONFIG.combat.firstLevelNormalPreparationMs;
+      ? (this.waveSet.bossPreparationMs ?? BATTLE_BALANCE_CONFIG.combat.firstLevelBossPreparationMs)
+      : (this.waveSet.normalPreparationMs ?? BATTLE_BALANCE_CONFIG.combat.firstLevelNormalPreparationMs);
   }
 
   private updatePreparationMessage(): void {

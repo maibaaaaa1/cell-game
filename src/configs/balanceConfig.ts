@@ -26,7 +26,8 @@ export const BATTLE_BALANCE_CONFIG = {
     firstLevelSpeedMultiplier: 0.9,
     firstLevelInitialPreparationMs: 8000,
     firstLevelSpawnIntervalMs: 1600,
-    firstLevelNormalPreparationMs: 5000,
-    firstLevelBossPreparationMs: 10000
+    firstLevelNormalPreparationMs: 2500,
+    firstLevelBossPreparationMs: 10000,
+    firstLevelWaveAdvanceEnemyThreshold: 1
   }
 } as const;

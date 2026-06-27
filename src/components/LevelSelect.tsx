@@ -14,7 +14,7 @@ export function LevelSelect({ save, onBack, onStart }: LevelSelectProps) {
       <header className="screen-header">
         <div>
           <p className="eyebrow">关卡选择</p>
-          <h1>人体防线地图</h1>
+          <h1>免疫星图</h1>
         </div>
         <button className="secondary-button" onClick={onBack}>
           返回

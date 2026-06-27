@@ -29,47 +29,47 @@ export const WAVE_CONFIG: Record<string, WaveSetConfig> = {
     initialMessage: "鼻腔黏膜遭遇病毒入侵，部署免疫细胞守住防线。",
     tutorialMessageMs: 3000,
     tutorialMessage: "选择下方巨噬细胞，点击蓝色免疫驻点部署。",
-    normalPreparationMs: 5000,
+    normalPreparationMs: 2500,
     bossPreparationMs: 10000,
     waves: [
-      pacedWave(1, "教学波：左路病毒", 8000, [
-        { enemy: "normalVirus", count: 2, route: "left", delayMs: 0, intervalMs: 2000 },
-        { enemy: "normalVirus", count: 2, route: "left", delayMs: 3000, intervalMs: 2000 }
+      pacedWave(1, "教学波：左路病毒", 6000, [
+        { enemy: "normalVirus", count: 3, route: "left", delayMs: 0, intervalMs: 2000 },
+        { enemy: "normalVirus", count: 3, route: "left", delayMs: 6000, intervalMs: 2000 }
       ]),
-      pacedWave(2, "左路继续", 8500, [
-        { enemy: "normalVirus", count: 3, route: "left", delayMs: 0, intervalMs: 1800 },
-        { enemy: "normalVirus", count: 3, route: "left", delayMs: 4000, intervalMs: 1800 }
-      ]),
-      pacedWave(3, "快速病毒出现", 9000, [
-        { enemy: "normalVirus", count: 4, route: "left", delayMs: 0, intervalMs: 1700 },
-        { enemy: "fastVirus", count: 2, route: "left", delayMs: 5000, intervalMs: 1500 }
-      ]),
-      pacedWave(4, "首次双路线", 9500, [
+      pacedWave(2, "左路强化", 6500, [
         { enemy: "normalVirus", count: 4, route: "left", delayMs: 0, intervalMs: 1800 },
-        { enemy: "normalVirus", count: 4, route: "right", delayMs: 3000, intervalMs: 1800 }
+        { enemy: "normalVirus", count: 4, route: "left", delayMs: 7000, intervalMs: 1800 }
+      ]),
+      pacedWave(3, "快速病毒出现", 7000, [
+        { enemy: "normalVirus", count: 6, route: "left", delayMs: 0, intervalMs: 1700 },
+        { enemy: "fastVirus", count: 4, route: "left", delayMs: 8000, intervalMs: 1600 }
+      ]),
+      pacedWave(4, "首次双路线", 8000, [
+        { enemy: "normalVirus", count: 6, route: "left", delayMs: 0, intervalMs: 1700 },
+        { enemy: "normalVirus", count: 6, route: "right", delayMs: 5000, intervalMs: 1700 }
       ], "另一侧也出现病毒，注意双路线。"),
-      pacedWave(5, "双路混合", 10500, [
-        { enemy: "normalVirus", count: 4, route: "left", delayMs: 0, intervalMs: 1600 },
-        { enemy: "fastVirus", count: 3, route: "right", delayMs: 3000, intervalMs: 1500 },
-        { enemy: "normalVirus", count: 2, route: "left", delayMs: 8000, intervalMs: 1600 }
+      pacedWave(5, "双路混合", 8500, [
+        { enemy: "normalVirus", count: 5, route: "left", delayMs: 0, intervalMs: 1600 },
+        { enemy: "fastVirus", count: 4, route: "right", delayMs: 4000, intervalMs: 1500 },
+        { enemy: "normalVirus", count: 4, route: "left", delayMs: 10000, intervalMs: 1600 }
       ]),
-      pacedWave(6, "普通细菌出现", 11500, [
-        { enemy: "bacteria", count: 2, route: "left", delayMs: 0, intervalMs: 2200 },
-        { enemy: "normalVirus", count: 5, route: "right", delayMs: 3000, intervalMs: 1600 },
-        { enemy: "bacteria", count: 1, route: "left", delayMs: 9000, intervalMs: 2200 }
+      pacedWave(6, "普通细菌出现", 9000, [
+        { enemy: "bacteria", count: 3, route: "left", delayMs: 0, intervalMs: 2200 },
+        { enemy: "normalVirus", count: 6, route: "right", delayMs: 4000, intervalMs: 1600 },
+        { enemy: "bacteria", count: 3, route: "left", delayMs: 12000, intervalMs: 2200 }
       ], "细菌更耐打，巨噬细胞适合拦截。"),
-      pacedWave(7, "轻压迫", 12000, [
-        { enemy: "fastVirus", count: 4, route: "left", delayMs: 0, intervalMs: 1500 },
+      pacedWave(7, "轻压迫", 10500, [
+        { enemy: "fastVirus", count: 5, route: "left", delayMs: 0, intervalMs: 1500 },
         { enemy: "normalVirus", count: 6, route: "right", delayMs: 2000, intervalMs: 1500 },
-        { enemy: "bacteria", count: 2, route: "right", delayMs: 8000, intervalMs: 2000 }
+        { enemy: "bacteria", count: 4, route: "right", delayMs: 10000, intervalMs: 2000 }
       ]),
-      pacedWave(8, "Boss前综合波", 13000, [
-        { enemy: "normalVirus", count: 6, route: "left", delayMs: 0, intervalMs: 1400 },
-        { enemy: "fastVirus", count: 4, route: "right", delayMs: 2000, intervalMs: 1400 },
-        { enemy: "bacteria", count: 2, route: "left", delayMs: 8000, intervalMs: 2000 },
-        { enemy: "bacteria", count: 1, route: "right", delayMs: 12000, intervalMs: 2000 }
+      pacedWave(8, "Boss前综合波", 12500, [
+        { enemy: "normalVirus", count: 7, route: "left", delayMs: 0, intervalMs: 1400 },
+        { enemy: "fastVirus", count: 5, route: "right", delayMs: 3000, intervalMs: 1400 },
+        { enemy: "bacteria", count: 3, route: "left", delayMs: 10000, intervalMs: 2000 },
+        { enemy: "bacteria", count: 3, route: "right", delayMs: 14000, intervalMs: 2000 }
       ]),
-      pacedWave(9, "Boss 变异病毒团", 20000, [
+      pacedWave(9, "Boss 变异病毒团", 30000, [
         { enemy: "mutantVirusCluster", count: 1, route: "mixed", delayMs: 0, intervalMs: 1000 }
       ], "大型变异病毒团正在靠近。")
     ]

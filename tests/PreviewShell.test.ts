@@ -39,6 +39,13 @@ test("first level card shows nine waves instead of the old twenty-wave copy", ()
   assert.ok(!source.includes("20波"));
 });
 
+test("level map page is named immune star map instead of the old body defense map", () => {
+  const source = readFileSync(new URL("../src/components/LevelSelect.tsx", import.meta.url), "utf8");
+
+  assert.ok(source.includes("免疫星图"));
+  assert.ok(!source.includes("人体防线地图"));
+});
+
 test("first level HUD presentation hides fever, combo, and kill counters", () => {
   assert.deepEqual(FIRST_LEVEL_HUD_LABELS, ["组织耐久", "ATP能量", "当前波次"]);
   assert.ok(!FIRST_LEVEL_HUD_LABELS.includes("体温" as never));
