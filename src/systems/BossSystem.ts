@@ -1,5 +1,5 @@
 import type { BattleSystem } from "../types/battle.ts";
-import type { BattleRuntimeState } from "./BattleRuntimeState.ts";
+import { pushRuntimeEffect, type BattleRuntimeState } from "./BattleRuntimeState.ts";
 import type { EnemySystem } from "./EnemySystem.ts";
 
 export class BossSystem implements BattleSystem {
@@ -28,6 +28,12 @@ export class BossSystem implements BattleSystem {
       this.enemies.spawn("miniVirus", routeId, Math.max(0, boss.progress - 0.035 + index * 0.006));
     }
     this.runtime.message = "变异病毒团开始分裂，小病毒正在扩散！";
+    pushRuntimeEffect(this.runtime, {
+      x: boss.x,
+      y: boss.y,
+      text: "分裂！",
+      tone: "boss"
+    });
   }
 
   cleanup(): void {}

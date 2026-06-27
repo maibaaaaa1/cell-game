@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { CELL_CONFIG } from "../configs/cellConfig.ts";
+import { FIRST_LEVEL_CELL_ORDER, FIRST_LEVEL_ROUTE_IDS, FIRST_LEVEL_WAVE_SET_ID } from "../configs/firstLevelConfig.ts";
 import { ROUTE_CONFIG } from "../configs/routeConfig.ts";
 import { AudioCueSystem } from "../systems/AudioCueSystem.ts";
 import { ATPSystem } from "../systems/ATPSystem.ts";
@@ -18,7 +19,7 @@ import type { BattleState, CellKind, EnemyKind, LevelConfig, SkillKind } from ".
 
 type SlotView = { id: string; x: number; y: number; radius: number };
 
-const PLAYABLE_CELLS: CellKind[] = ["macrophage", "nk"];
+const PLAYABLE_CELLS = FIRST_LEVEL_CELL_ORDER;
 
 export class BattleScene extends Phaser.Scene {
   private readonly level: LevelConfig;
@@ -34,10 +35,12 @@ export class BattleScene extends Phaser.Scene {
   private paused = false;
   private finishShown = false;
   private slots: SlotView[] = [];
+  private readonly slotDiscs = new Map<string, Phaser.GameObjects.Arc>();
   private rangePreview?: Phaser.GameObjects.Arc;
   private readonly enemyViews = new Map<string, Phaser.GameObjects.Container>();
   private readonly cellViews = new Map<string, Phaser.GameObjects.Container>();
   private readonly projectileViews = new Map<string, Phaser.GameObjects.Arc>();
+  private readonly effectViews = new Set<Phaser.GameObjects.GameObject>();
 
   constructor(level: LevelConfig, onSaveChanged: () => void, soundEnabled: boolean) {
     super("BattleScene");
@@ -73,7 +76,7 @@ export class BattleScene extends Phaser.Scene {
     this.cells = new CellSystem(this.runtime, this.atp);
     this.cells.wireCombat(targeting, projectiles);
     const boss = new BossSystem(this.runtime, enemies);
-    const waves = new WaveSystem("noseFirstLevel", this.runtime, enemies);
+    const waves = new WaveSystem(FIRST_LEVEL_WAVE_SET_ID, this.runtime, enemies);
     this.loop = new BattleLoopSystem([this.atp, waves, enemies, boss, this.cells, projectiles]);
   }
 
@@ -90,6 +93,7 @@ export class BattleScene extends Phaser.Scene {
         this.runtime.selectedCell = command.cell;
         this.runtime.message = `已选择${command.cell === "macrophage" ? "巨噬细胞" : "NK细胞"}，点击发光驻点部署。`;
         this.updateRangePreview(undefined);
+        this.updateSlotHighlights();
         this.emitState(true);
       }
 
@@ -140,13 +144,21 @@ export class BattleScene extends Phaser.Scene {
 
     const slot = this.getSlotAt(x, y);
     if (!slot) {
-      this.runtime.message = "请选择发光的免疫驻点部署。";
+      this.selectedCell = undefined;
+      this.runtime.selectedCell = undefined;
+      this.runtime.message = "已取消选择。";
+      this.updateRangePreview(undefined);
+      this.updateSlotHighlights();
       this.emitState(true);
       return;
     }
 
     const cell = this.cells.deploy(this.selectedCell, slot.id);
     this.updateRangePreview(cell);
+    this.updateSlotHighlights();
+    if (cell) {
+      this.playDeployFeedback(cell);
+    }
     this.emitState(true);
   }
 
@@ -165,7 +177,7 @@ export class BattleScene extends Phaser.Scene {
 
   private drawRoutes(): void {
     const graphics = this.add.graphics();
-    for (const routeId of ["noseLeft", "noseRight"]) {
+    for (const routeId of FIRST_LEVEL_ROUTE_IDS) {
       const route = ROUTE_CONFIG[routeId];
       graphics.lineStyle(34, 0xccfbf1, 1);
       route.points.forEach((point, index) => {
@@ -210,16 +222,39 @@ export class BattleScene extends Phaser.Scene {
     this.slots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => {
       const world = this.toWorld(slot.x, slot.y);
       const radius = 24;
-      const view = this.add.circle(world.x, world.y, radius, 0xffffff, 0.62);
-      view.setStrokeStyle(3, 0x22c55e, 0.78);
+      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.2);
+      view.setStrokeStyle(3, 0x38bdf8, 0.72);
+      this.slotDiscs.set(slot.id, view);
       return { id: slot.id, x: world.x, y: world.y, radius };
     });
+    this.updateSlotHighlights();
+  }
+
+  private updateSlotHighlights(): void {
+    for (const slot of this.slots) {
+      const disc = this.slotDiscs.get(slot.id);
+      if (!disc) {
+        continue;
+      }
+      const occupied = this.runtime.cells.some((cell) => cell.slotId === slot.id);
+      if (occupied) {
+        disc.setFillStyle(0xffffff, 0.12);
+        disc.setStrokeStyle(2, 0x94a3b8, 0.32);
+      } else if (this.selectedCell) {
+        disc.setFillStyle(0x22d3ee, 0.34);
+        disc.setStrokeStyle(4, 0x06b6d4, 0.95);
+      } else {
+        disc.setFillStyle(0x38bdf8, 0.2);
+        disc.setStrokeStyle(3, 0x38bdf8, 0.72);
+      }
+    }
   }
 
   private renderRuntime(): void {
     this.renderCells();
     this.renderEnemies();
     this.renderProjectiles();
+    this.renderEffects();
   }
 
   private renderCells(): void {
@@ -334,6 +369,70 @@ export class BattleScene extends Phaser.Scene {
     this.rangePreview.setStrokeStyle(2, 0x22c55e, 0.35);
   }
 
+  private playDeployFeedback(cell: RuntimeCell): void {
+    const world = this.toWorld(cell.x, cell.y);
+    const burst = this.add.circle(world.x, world.y, 16, 0x22c55e, 0.28);
+    burst.setStrokeStyle(3, 0x22c55e, 0.65);
+    this.effectViews.add(burst);
+    this.tweens.add({
+      targets: burst,
+      scale: 2.1,
+      alpha: 0,
+      duration: 360,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        burst.destroy();
+        this.effectViews.delete(burst);
+      }
+    });
+  }
+
+  private renderEffects(): void {
+    const effects = this.runtime.effects.splice(0);
+    for (const effect of effects) {
+      const world = this.toWorld(effect.x, effect.y);
+      if (effect.tone === "hit") {
+        const hit = this.add.circle(world.x, world.y, 10, 0xffffff, 0.52);
+        this.effectViews.add(hit);
+        this.tweens.add({
+          targets: hit,
+          scale: 1.5,
+          alpha: 0,
+          duration: 160,
+          onComplete: () => {
+            hit.destroy();
+            this.effectViews.delete(hit);
+          }
+        });
+        continue;
+      }
+
+      const color = effect.tone === "danger" ? "#be123c" : effect.tone === "boss" ? "#7c2d12" : "#0f766e";
+      const label = this.add
+        .text(world.x, world.y - 22, effect.text, {
+          fontFamily: "system-ui",
+          fontSize: effect.tone === "boss" ? "24px" : "16px",
+          fontStyle: "900",
+          color,
+          stroke: "#ffffff",
+          strokeThickness: 4
+        })
+        .setOrigin(0.5);
+      this.effectViews.add(label);
+      this.tweens.add({
+        targets: label,
+        y: label.y - 30,
+        alpha: 0,
+        duration: 720,
+        ease: "Cubic.easeOut",
+        onComplete: () => {
+          label.destroy();
+          this.effectViews.delete(label);
+        }
+      });
+    }
+  }
+
   private checkFinish(): void {
     if (this.finishShown || this.runtime.status === "playing") {
       return;
@@ -380,6 +479,7 @@ export class BattleScene extends Phaser.Scene {
       maxWave: this.runtime.maxWave,
       feverTemperature: 37,
       selectedCell: this.selectedCell,
+      result: this.runtime.status === "playing" ? undefined : this.runtime.status,
       paused: this.paused,
       pauseMenuOpen: this.paused,
       message: this.runtime.message,
@@ -413,6 +513,7 @@ export class BattleScene extends Phaser.Scene {
     this.loop?.cleanup();
     this.loop = undefined;
     this.destroyRuntimeViews();
+    this.runtime.cleanup();
     this.time.removeAllEvents();
     this.tweens.killAll();
   }
@@ -429,9 +530,13 @@ export class BattleScene extends Phaser.Scene {
     for (const view of this.projectileViews.values()) {
       view.destroy();
     }
+    for (const view of this.effectViews.values()) {
+      view.destroy();
+    }
     this.enemyViews.clear();
     this.cellViews.clear();
     this.projectileViews.clear();
+    this.effectViews.clear();
   }
 
   private getSlotAt(x: number, y: number): SlotView | null {

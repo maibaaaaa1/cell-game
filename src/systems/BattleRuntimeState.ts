@@ -41,6 +41,14 @@ export interface RuntimeProjectile {
   speed: number;
 }
 
+export interface RuntimeEffect {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  tone: "gain" | "danger" | "boss" | "hit";
+}
+
 export interface BattleRuntimeState {
   atp: number;
   maxAtp: number;
@@ -53,10 +61,12 @@ export interface BattleRuntimeState {
   enemies: RuntimeEnemy[];
   cells: RuntimeCell[];
   projectiles: RuntimeProjectile[];
+  effects: RuntimeEffect[];
   defeatedBoss: boolean;
   nextEnemyId: number;
   nextCellId: number;
   nextProjectileId: number;
+  nextEffectId: number;
   cleanup: () => void;
 }
 
@@ -79,10 +89,12 @@ export function createBattleRuntimeState(overrides: BattleRuntimeOverrides = {})
     enemies: [],
     cells: [],
     projectiles: [],
+    effects: [],
     defeatedBoss: false,
     nextEnemyId: 1,
     nextCellId: 1,
     nextProjectileId: 1,
+    nextEffectId: 1,
     cleanup() {
       this.atp = BATTLE_BALANCE_CONFIG.resources.initialAtp;
       this.maxAtp = BATTLE_BALANCE_CONFIG.resources.maxAtp;
@@ -94,12 +106,22 @@ export function createBattleRuntimeState(overrides: BattleRuntimeOverrides = {})
       this.enemies = [];
       this.cells = [];
       this.projectiles = [];
+      this.effects = [];
       this.defeatedBoss = false;
       this.nextEnemyId = 1;
       this.nextCellId = 1;
       this.nextProjectileId = 1;
+      this.nextEffectId = 1;
     }
   };
 
   return state;
+}
+
+export function pushRuntimeEffect(state: BattleRuntimeState, effect: Omit<RuntimeEffect, "id">): void {
+  state.effects.push({
+    id: `effect-${state.nextEffectId}`,
+    ...effect
+  });
+  state.nextEffectId += 1;
 }

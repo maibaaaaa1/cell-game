@@ -1,5 +1,5 @@
 import type { BattleSystem } from "../types/battle.ts";
-import type { BattleRuntimeState } from "./BattleRuntimeState.ts";
+import { pushRuntimeEffect, type BattleRuntimeState } from "./BattleRuntimeState.ts";
 
 export class DamageSystem implements BattleSystem {
   readonly name = "DamageSystem";
@@ -26,6 +26,12 @@ export class DamageSystem implements BattleSystem {
 
     this.runtime.enemies = this.runtime.enemies.filter((item) => item.id !== enemyId);
     this.runtime.atp = Math.min(this.runtime.maxAtp, this.runtime.atp + enemy.reward);
+    pushRuntimeEffect(this.runtime, {
+      x: enemy.x,
+      y: enemy.y,
+      text: `+${enemy.reward} ATP`,
+      tone: "gain"
+    });
     if (enemy.kind === "mutantVirusCluster") {
       this.runtime.defeatedBoss = true;
     }

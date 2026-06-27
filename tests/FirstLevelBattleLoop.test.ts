@@ -3,6 +3,7 @@ import test from "node:test";
 import { BATTLE_BALANCE_CONFIG } from "../src/configs/balanceConfig.ts";
 import { CELL_CONFIG } from "../src/configs/cellConfig.ts";
 import { ENEMY_CONFIG } from "../src/configs/enemyConfig.ts";
+import { FIRST_LEVEL_CELL_ORDER } from "../src/configs/firstLevelConfig.ts";
 import { LEVEL_CONFIG } from "../src/configs/levelConfig.ts";
 import { ROUTE_CONFIG } from "../src/configs/routeConfig.ts";
 import { WAVE_CONFIG } from "../src/configs/waveConfig.ts";
@@ -48,6 +49,23 @@ test("cell deployment spends ATP and rejects unaffordable deployments", () => {
   assert.equal(nk, null);
   assert.equal(runtime.atp, 20);
   assert.match(runtime.message, /ATP不足/);
+});
+
+test("first level action bar exposes only macrophage and NK", () => {
+  assert.deepEqual(FIRST_LEVEL_CELL_ORDER, ["macrophage", "nk"]);
+});
+
+test("occupied immune slot cannot be deployed twice", () => {
+  const runtime = createBattleRuntimeState();
+  const atp = new ATPSystem(runtime);
+  const cells = new CellSystem(runtime, atp);
+
+  assert.ok(cells.deploy("macrophage", "slot-1"));
+  const duplicate = cells.deploy("nk", "slot-1");
+
+  assert.equal(duplicate, null);
+  assert.equal(runtime.cells.length, 1);
+  assert.match(runtime.message, /已有细胞/);
 });
 
 test("damage kills enemies and awards ATP", () => {
@@ -96,11 +114,13 @@ test("boss splits once at half health and cleanup resets battle state", () => {
 
   runtime.cells.push({ id: "cell-test", kind: "macrophage", slotId: "slot-1", routeId: "left", x: 0.2, y: 0.5, range: 0.2, attack: 20, attackCooldownMs: 1000, lastAttackAt: 0 });
   runtime.projectiles.push({ id: "p-test", targetId: bossEnemy.id, x: 0.1, y: 0.1, damage: 20, speed: 1 });
+  runtime.effects.push({ id: "effect-test", x: 0.2, y: 0.2, text: "+7 ATP", tone: "gain" });
   runtime.cleanup();
 
   assert.equal(runtime.enemies.length, 0);
   assert.equal(runtime.cells.length, 0);
   assert.equal(runtime.projectiles.length, 0);
+  assert.equal(runtime.effects.length, 0);
   assert.equal(runtime.atp, 160);
   assert.equal(runtime.tissueIntegrity, 100);
 });

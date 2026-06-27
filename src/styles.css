@@ -98,6 +98,10 @@ button {
     @apply border-lymph bg-violet-50 ring-2 ring-lymph/25;
   }
 
+  .unaffordable-card {
+    @apply border-rose-200 bg-rose-50/80 text-slate-500 ring-1 ring-rose-200;
+  }
+
   .cell-dot {
     @apply mb-2 h-5 w-5 rounded-full shadow-inner;
   }
@@ -132,6 +136,14 @@ button {
 
   .storm-pill {
     @apply bg-orange-100 text-orange-700 ring-orange-300;
+  }
+
+  .battle-result-actions {
+    @apply fixed inset-x-4 bottom-4 z-40 mx-auto grid max-w-sm gap-3 rounded-2xl border border-white/80 bg-white/95 p-3 text-center shadow-soft;
+  }
+
+  .battle-result-actions strong {
+    @apply text-lg font-black text-slate-950;
   }
 
   .pause-menu {

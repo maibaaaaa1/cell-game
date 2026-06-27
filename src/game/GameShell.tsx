@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
 import { CELL_CONFIGS } from "../configs/cells";
+import { FIRST_LEVEL_CELL_ORDER } from "../configs/firstLevelConfig";
 import { TEXT_CONFIG } from "../configs/textConfig";
 import { BattleScene } from "../scenes/BattleScene";
 import { onBattleState, sendBattleCommand } from "../systems/gameBus";
@@ -21,6 +22,7 @@ const INITIAL_STATE: BattleState = {
   wave: 0,
   maxWave: 20,
   feverTemperature: 37,
+  result: undefined,
   paused: false,
   pauseMenuOpen: false,
   message: "加载免疫战场中。",
@@ -47,8 +49,6 @@ const INITIAL_STATE: BattleState = {
     mutantVirusCluster: 0
   }
 };
-
-const FIRST_LEVEL_CELLS: CellKind[] = ["macrophage", "nk"];
 
 export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameShellProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -169,14 +169,16 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
 
         <footer className="battle-action-bar grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
           <div className="cell-card-strip mx-auto grid w-full max-w-sm grid-cols-2 gap-2">
-            {FIRST_LEVEL_CELLS.map((kind) => {
+            {FIRST_LEVEL_CELL_ORDER.map((kind) => {
               const cell = CELL_CONFIGS[kind];
               const selected = state.selectedCell === kind;
+              const unaffordable = state.atp < cell.cost;
               return (
                 <button
                   key={kind}
                   draggable
-                  className={`cell-card ${selected ? "selected-card" : ""}`}
+                  className={`cell-card ${selected ? "selected-card" : ""} ${unaffordable ? "unaffordable-card" : ""}`}
+                  title={unaffordable ? "ATP不足，部署后会提示" : `${cell.name} ${cell.cost} ATP`}
                   onDragStart={(event) => {
                     draggedCellRef.current = kind;
                     event.dataTransfer.setData("text/plain", kind);
@@ -186,7 +188,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                   <span className="cell-dot" style={{ backgroundColor: cell.accent }} />
                   <strong>{cell.name}</strong>
                   <small>{cell.role}</small>
-                  <span>{cell.cost} ATP</span>
+                  <span>{unaffordable ? `ATP不足 · ${cell.cost}` : `${cell.cost} ATP`}</span>
                 </button>
               );
             })}
@@ -216,6 +218,20 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                   退出
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {state.result && (
+          <div className="battle-result-actions">
+            <strong>{state.result === "victory" ? "鼻腔保卫战胜利" : "鼻腔防线失守"}</strong>
+            <div className="grid w-full grid-cols-2 gap-2">
+              <button className="primary-button" onClick={() => sendBattleCommand({ type: "restart" })}>
+                再战一局
+              </button>
+              <button className="secondary-button" onClick={onExit}>
+                返回地图
+              </button>
             </div>
           </div>
         )}

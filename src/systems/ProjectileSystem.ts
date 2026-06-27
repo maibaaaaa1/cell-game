@@ -1,5 +1,5 @@
 import type { BattleSystem } from "../types/battle.ts";
-import type { BattleRuntimeState, RuntimeCell, RuntimeEnemy } from "./BattleRuntimeState.ts";
+import { pushRuntimeEffect, type BattleRuntimeState, type RuntimeCell, type RuntimeEnemy } from "./BattleRuntimeState.ts";
 import type { DamageSystem } from "./DamageSystem.ts";
 
 export class ProjectileSystem implements BattleSystem {
@@ -44,6 +44,12 @@ export class ProjectileSystem implements BattleSystem {
       const distance = Math.hypot(target.x - projectile.x, target.y - projectile.y);
       const step = (projectile.speed * delta) / 1000;
       if (distance <= step || distance <= 0.015) {
+        pushRuntimeEffect(this.runtime, {
+          x: target.x,
+          y: target.y,
+          text: "",
+          tone: "hit"
+        });
         this.damage.apply(target.id, projectile.damage);
         continue;
       }

@@ -94,6 +94,7 @@ export interface BattleState {
   maxWave: number;
   feverTemperature: number;
   selectedCell?: CellKind;
+  result?: "victory" | "defeat";
   paused: boolean;
   pauseMenuOpen?: boolean;
   message: string;

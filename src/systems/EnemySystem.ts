@@ -2,7 +2,7 @@ import { ENEMY_CONFIG } from "../configs/enemyConfig.ts";
 import { ROUTE_CONFIG } from "../configs/routeConfig.ts";
 import type { BattleSystem } from "../types/battle.ts";
 import type { EnemyKind } from "../types/game.ts";
-import type { BattleRouteSide, BattleRuntimeState, RuntimeEnemy } from "./BattleRuntimeState.ts";
+import { pushRuntimeEffect, type BattleRouteSide, type BattleRuntimeState, type RuntimeEnemy } from "./BattleRuntimeState.ts";
 
 const ROUTE_BY_SIDE: Record<BattleRouteSide, string> = {
   left: "noseLeft",
@@ -43,6 +43,15 @@ export class EnemySystem implements BattleSystem {
     };
     this.runtime.nextEnemyId += 1;
     this.runtime.enemies.push(enemy);
+    if (kind === "mutantVirusCluster") {
+      this.runtime.message = "Boss 变异病毒团出现！";
+      pushRuntimeEffect(this.runtime, {
+        x: enemy.x,
+        y: enemy.y,
+        text: "Boss出现",
+        tone: "boss"
+      });
+    }
     return enemy;
   }
 
@@ -65,6 +74,12 @@ export class EnemySystem implements BattleSystem {
 
     for (const enemy of reached) {
       this.runtime.tissueIntegrity = Math.max(0, this.runtime.tissueIntegrity - enemy.damage);
+      pushRuntimeEffect(this.runtime, {
+        x: enemy.x,
+        y: enemy.y,
+        text: `组织 -${enemy.damage}`,
+        tone: "danger"
+      });
       this.runtime.enemies = this.runtime.enemies.filter((item) => item.id !== enemy.id);
       this.runtime.message = `${this.nameFor(enemy.kind)}突破防线，组织耐久下降。`;
       if (this.runtime.tissueIntegrity <= 0) {
