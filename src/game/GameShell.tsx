@@ -1,12 +1,11 @@
 import Phaser from "phaser";
-import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
-import { CELL_CONFIGS } from "../configs/cells";
-import { FIRST_LEVEL_CELL_ORDER } from "../configs/firstLevelConfig";
 import { TEXT_CONFIG } from "../configs/textConfig";
 import { BattleScene } from "../scenes/BattleScene";
-import { onBattleState, sendBattleCommand } from "../systems/gameBus";
+import { BATTLE_RESTART_COMMAND, onBattleState, sendBattleCommand } from "../systems/gameBus";
 import type { BattleState, CellKind, LevelConfig } from "../types/game";
+import { FIRST_LEVEL_HUD_LABELS, getFirstLevelActionCells } from "./firstLevelPresentation";
 
 interface GameShellProps {
   level: LevelConfig;
@@ -56,6 +55,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
   const onSaveChangedRef = useRef(onSaveChanged);
   const draggedCellRef = useRef<CellKind | null>(null);
   const [state, setState] = useState<BattleState>(INITIAL_STATE);
+  const actionCells = getFirstLevelActionCells();
 
   useEffect(() => {
     onSaveChangedRef.current = onSaveChanged;
@@ -95,11 +95,6 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
     };
   }, [level, soundEnabled]);
 
-  const totalKills = useMemo(
-    () => Object.values(state.kills).reduce<number>((sum, value) => sum + value, 0),
-    [state.kills]
-  );
-
   const handleDropOnCanvas = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const cell = draggedCellRef.current;
@@ -127,27 +122,18 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
   };
 
   return (
-    <main className="game-shell min-h-screen px-3 py-3 text-slate-950">
+    <main className="game-shell text-slate-950">
       <div className="landscape-warning">{TEXT_CONFIG.orientationWarning}</div>
-      <section className="portrait-battle-shell mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[540px] flex-col gap-2">
-        <header className="battle-hud grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
-          <div className="grid grid-cols-3 gap-2 text-sm font-black">
-            <HudItem label="组织耐久" value={state.tissueIntegrity} tone="text-danger" />
-            <HudItem label="ATP能量" value={state.atp} tone="text-amber-600" />
-            <HudItem label="当前波次" value={`${state.wave}/${state.maxWave}`} tone="text-lymph" />
-            <HudItem label="Combo" value={state.combo > 1 ? `x${state.combo}` : "-"} tone={state.combo >= 10 ? "text-orange-600" : "text-cyan-700"} />
-            <HudItem label="体温" value={`${state.feverTemperature.toFixed(1)}℃`} tone="text-rose-600" />
-            <HudItem label="击杀" value={totalKills} tone="text-emerald-600" />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button className="secondary-button min-h-10 px-4" onClick={() => sendBattleCommand({ type: "toggle-pause" })}>
+      <section className="portrait-battle-shell mx-auto flex w-full max-w-[540px] flex-col gap-2">
+        <header className="battle-hud rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
+          <div className="battle-hud-main">
+            <div className="battle-hud-stats grid grid-cols-3 gap-2 text-sm font-black">
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[0]} value={state.tissueIntegrity} tone="text-danger" />
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[1]} value={state.atp} tone="text-amber-600" />
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[2]} value={`${state.wave}/${state.maxWave}`} tone="text-lymph" />
+            </div>
+            <button className="secondary-button pause-toggle-button" onClick={() => sendBattleCommand({ type: "toggle-pause" })}>
               {state.paused ? "继续" : "暂停"}
-            </button>
-            <button className="secondary-button min-h-10 px-4" onClick={() => sendBattleCommand({ type: "restart" })}>
-              重新开始
-            </button>
-            <button className="secondary-button min-h-10 px-4" onClick={onExit}>
-              退出
             </button>
           </div>
         </header>
@@ -158,7 +144,6 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
             className={`phaser-host relative w-full overflow-hidden rounded-xl bg-white ${
               state.stormActive ? "storm-border" : ""
             }`}
-            style={{ aspectRatio: `${BATTLE_BALANCE_CONFIG.canvas.width} / ${BATTLE_BALANCE_CONFIG.canvas.height}` }}
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDropOnCanvas}
             onPointerUpCapture={(event) => placeAtClientPoint(event.clientX, event.clientY)}
@@ -169,21 +154,20 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
 
         <footer className="battle-action-bar grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
           <div className="cell-card-strip mx-auto grid w-full max-w-sm grid-cols-2 gap-2">
-            {FIRST_LEVEL_CELL_ORDER.map((kind) => {
-              const cell = CELL_CONFIGS[kind];
-              const selected = state.selectedCell === kind;
+            {actionCells.map((cell) => {
+              const selected = state.selectedCell === cell.kind;
               const unaffordable = state.atp < cell.cost;
               return (
                 <button
-                  key={kind}
+                  key={cell.kind}
                   draggable
                   className={`cell-card ${selected ? "selected-card" : ""} ${unaffordable ? "unaffordable-card" : ""}`}
                   title={unaffordable ? "ATP不足，部署后会提示" : `${cell.name} ${cell.cost} ATP`}
                   onDragStart={(event) => {
-                    draggedCellRef.current = kind;
-                    event.dataTransfer.setData("text/plain", kind);
+                    draggedCellRef.current = cell.kind;
+                    event.dataTransfer.setData("text/plain", cell.kind);
                   }}
-                  onClick={() => sendBattleCommand({ type: "select-cell", cell: kind })}
+                  onClick={() => sendBattleCommand({ type: "select-cell", cell: cell.kind })}
                 >
                   <span className="cell-dot" style={{ backgroundColor: cell.accent }} />
                   <strong>{cell.name}</strong>
@@ -211,7 +195,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                 <button className="primary-button" onClick={() => sendBattleCommand({ type: "resume" })}>
                   继续战斗
                 </button>
-                <button className="secondary-button" onClick={() => sendBattleCommand({ type: "restart" })}>
+                <button className="secondary-button" onClick={() => sendBattleCommand(BATTLE_RESTART_COMMAND)}>
                   重新开始
                 </button>
                 <button className="secondary-button" onClick={onExit}>
@@ -226,7 +210,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           <div className="battle-result-actions">
             <strong>{state.result === "victory" ? "鼻腔保卫战胜利" : "鼻腔防线失守"}</strong>
             <div className="grid w-full grid-cols-2 gap-2">
-              <button className="primary-button" onClick={() => sendBattleCommand({ type: "restart" })}>
+              <button className="primary-button" onClick={() => sendBattleCommand(BATTLE_RESTART_COMMAND)}>
                 再战一局
               </button>
               <button className="secondary-button" onClick={onExit}>

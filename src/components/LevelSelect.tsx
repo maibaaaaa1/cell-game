@@ -1,4 +1,5 @@
 import { LEVELS } from "../configs/levels";
+import { getLevelStatusText } from "../game/firstLevelPresentation";
 import type { LevelConfig, SaveData } from "../types/game";
 
 interface LevelSelectProps {
@@ -34,7 +35,7 @@ export function LevelSelect({ save, onBack, onStart }: LevelSelectProps) {
               <strong className="mt-2 block text-2xl">{level.name}</strong>
               <span className="mt-3 block min-h-16 text-sm leading-6 text-slate-600">{level.description}</span>
               <span className="mt-5 inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600">
-                {unlocked ? "可挑战 · 20波" : "后续解锁"}
+                {getLevelStatusText(level, unlocked)}
               </span>
             </button>
           );

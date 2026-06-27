@@ -1,4 +1,5 @@
 import type { Screen } from "../types/game";
+import { PREVIEW_VERSION_LABEL } from "../game/firstLevelPresentation";
 
 interface MainMenuProps {
   onNavigate: (screen: Screen) => void;
@@ -15,10 +16,13 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
             </div>
             <div className="space-y-4">
               <h1 className="max-w-3xl text-5xl font-black leading-tight tracking-normal text-slate-950 sm:text-7xl">
-                免疫细胞大作战 V2.0
+                免疫细胞大作战
               </h1>
+              <div className="inline-flex rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white shadow-soft">
+                {PREVIEW_VERSION_LABEL}
+              </div>
               <p className="max-w-2xl text-lg leading-8 text-slate-700">
-                扮演免疫系统总司令，部署巨噬细胞、NK细胞、B细胞与T细胞，守住核心器官，边玩边理解免疫协作。
+                扮演免疫系统总司令，在鼻腔黏膜第一道防线部署巨噬细胞与NK细胞，完成第一关手机试玩验收。
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -35,23 +39,29 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
                 设置
               </button>
             </div>
-            <div className="text-sm text-slate-500">排行榜已预留，V2.0先使用本地存档。</div>
+            <div className="text-sm text-slate-500">当前预览聚焦第一关闭环，排行榜仍为后续预留。</div>
           </div>
 
           <div className="relative min-h-[360px] rounded-[2rem] border border-white/80 bg-white/70 p-5 shadow-soft backdrop-blur">
             <div className="absolute inset-5 rounded-[1.5rem] bg-tissue" />
-            <div className="relative grid h-full min-h-[320px] grid-cols-3 gap-3">
-              {["巨噬", "树突", "NK", "B", "CD4", "CD8"].map((name, index) => (
-                <div
-                  key={name}
-                  className="flex items-center justify-center rounded-2xl border border-white/80 bg-white/75 text-center text-lg font-black text-slate-800 shadow-sm"
-                  style={{
-                    transform: `translateY(${index % 2 === 0 ? 14 : -4}px)`
-                  }}
-                >
-                  <span className="cell-token">{name}</span>
-                </div>
-              ))}
+            <div className="relative flex h-full min-h-[320px] flex-col justify-between gap-5">
+              <div className="rounded-2xl border border-cyan-100 bg-white/85 p-5 shadow-sm">
+                <p className="eyebrow">第一章</p>
+                <h2 className="text-3xl font-black">鼻腔保卫战</h2>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-600">
+                  双路线、7个免疫驻点、8波普通入侵与1个Boss波。
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {["巨噬细胞", "NK细胞"].map((name) => (
+                  <div
+                    key={name}
+                    className="flex min-h-28 items-center justify-center rounded-2xl border border-white/80 bg-white/85 text-center text-lg font-black text-slate-800 shadow-sm"
+                  >
+                    <span className="cell-token">{name.replace("细胞", "")}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

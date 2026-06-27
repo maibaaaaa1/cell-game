@@ -67,6 +67,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createRuntime(): void {
+    this.resetSceneState();
     this.runtime = createBattleRuntimeState({ maxWave: 9 });
     const enemies = new EnemySystem(this.runtime);
     const damage = new DamageSystem(this.runtime);
@@ -516,6 +517,20 @@ export class BattleScene extends Phaser.Scene {
     this.runtime.cleanup();
     this.time.removeAllEvents();
     this.tweens.killAll();
+  }
+
+  private resetSceneState(): void {
+    this.selectedCell = undefined;
+    this.lastStateEmit = 0;
+    this.paused = false;
+    this.finishShown = false;
+    this.slots = [];
+    this.slotDiscs.clear();
+    this.rangePreview = undefined;
+    this.enemyViews.clear();
+    this.cellViews.clear();
+    this.projectileViews.clear();
+    this.effectViews.clear();
   }
 
   private destroyRuntimeViews(): void {

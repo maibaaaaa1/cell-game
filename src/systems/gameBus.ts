@@ -9,6 +9,7 @@ type BattleCommand =
   | { type: "restart" };
 
 export const gameBus = new EventTarget();
+export const BATTLE_RESTART_COMMAND: BattleCommand = { type: "restart" };
 
 export function sendBattleCommand(command: BattleCommand): void {
   gameBus.dispatchEvent(new CustomEvent<BattleCommand>("battle-command", { detail: command }));
