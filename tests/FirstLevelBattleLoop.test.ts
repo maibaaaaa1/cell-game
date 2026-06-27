@@ -14,8 +14,18 @@ import { BossSystem } from "../src/systems/BossSystem.ts";
 import { CellSystem } from "../src/systems/CellSystem.ts";
 import { DamageSystem } from "../src/systems/DamageSystem.ts";
 import { EnemySystem } from "../src/systems/EnemySystem.ts";
+import { ProjectileSystem } from "../src/systems/ProjectileSystem.ts";
+import { TargetingSystem } from "../src/systems/TargetingSystem.ts";
 import { WaveSystem } from "../src/systems/WaveSystem.ts";
 import { createBattleRuntimeState } from "../src/systems/BattleRuntimeState.ts";
+
+function routeLength(routeId: string): number {
+  const points = ROUTE_CONFIG[routeId].points;
+  return points.slice(1).reduce((length, point, index) => {
+    const previous = points[index];
+    return length + Math.hypot(point.x - previous.x, point.y - previous.y);
+  }, 0);
+}
 
 test("first level config uses double routes, seven slots, nine waves, and requested economy", () => {
   const level = LEVEL_CONFIG.chapters[0].levels[0];
@@ -37,6 +47,32 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(ENEMY_CONFIG.fastVirus.speed, 1.45);
 });
 
+test("first level wave table exactly matches the original design", () => {
+  const waves = WAVE_CONFIG.noseFirstLevel.waves.map((wave) => wave.groups.map((group) => [group.enemy, group.count, group.route ?? "left"]));
+
+  assert.deepEqual(waves, [
+    [["normalVirus", 4, "left"]],
+    [["normalVirus", 6, "left"]],
+    [["normalVirus", 5, "left"], ["fastVirus", 2, "left"]],
+    [["normalVirus", 5, "left"], ["normalVirus", 5, "right"]],
+    [["normalVirus", 6, "mixed"], ["fastVirus", 3, "mixed"]],
+    [["bacteria", 3, "mixed"], ["normalVirus", 6, "mixed"]],
+    [["fastVirus", 6, "mixed"], ["normalVirus", 8, "mixed"]],
+    [["normalVirus", 8, "mixed"], ["fastVirus", 4, "mixed"], ["bacteria", 3, "mixed"]],
+    [["mutantVirusCluster", 1, "mixed"]]
+  ]);
+});
+
+test("first level wave pacing uses spawn interval, five second rests, and eight second boss prep", () => {
+  const waves = new WaveSystem("noseFirstLevel");
+
+  assert.equal(waves.maxWave, 9);
+  assert.equal(waves.getSpawnIntervalMs(), 750);
+  assert.equal(waves.getPreparationAfterWave(1), 5000);
+  assert.equal(waves.getPreparationAfterWave(8), 8000);
+  assert.equal(waves.getPreparationAfterWave(9), 0);
+});
+
 test("first level routes move from top entrance toward bottom tissue core", () => {
   for (const routeId of ["noseLeft", "noseRight"]) {
     const route = ROUTE_CONFIG[routeId];
@@ -46,6 +82,7 @@ test("first level routes move from top entrance toward bottom tissue core", () =
     assert.ok(start.y < 0.12, `${routeId} should enter from the top`);
     assert.ok(end.y > 0.86, `${routeId} should end near the bottom tissue core`);
     assert.ok(start.y < end.y, `${routeId} must move downward overall`);
+    assert.ok(routeLength(routeId) >= 0.92, `${routeId} should be long enough for a visible tower-defense march`);
   }
 });
 
@@ -215,4 +252,48 @@ test("wave system exposes eight normal waves plus boss wave for first level", ()
   assert.equal(waves.maxWave, 9);
   assert.deepEqual(waves.buildWave(1), ["normalVirus", "normalVirus", "normalVirus", "normalVirus"]);
   assert.equal(waves.getWaveLabel(9), "Boss 变异病毒团");
+});
+
+test("wave system trickles enemies instead of spawning each wave instantly", () => {
+  const runtime = createBattleRuntimeState();
+  const enemies = new EnemySystem(runtime);
+  const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
+
+  waves.update(0, 16);
+  assert.equal(runtime.wave, 1);
+  assert.equal(runtime.enemies.length, 1);
+  assert.equal(waves.getPendingSpawnCount(), 3);
+
+  waves.update(0, 750);
+  assert.equal(runtime.enemies.length, 2);
+  assert.equal(waves.getPendingSpawnCount(), 2);
+});
+
+test("fully taught first level remains winnable after pacing calibration", () => {
+  const runtime = createBattleRuntimeState({ atp: 1000 });
+  const enemies = new EnemySystem(runtime);
+  const damage = new DamageSystem(runtime);
+  const targeting = new TargetingSystem(runtime);
+  const projectiles = new ProjectileSystem(runtime, damage);
+  const atp = new ATPSystem(runtime);
+  const cells = new CellSystem(runtime, atp);
+  const boss = new BossSystem(runtime, enemies);
+  const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
+  cells.wireCombat(targeting, projectiles);
+
+  ROUTE_CONFIG.noseLeft.cellSlots.forEach((slot, index) => {
+    assert.ok(cells.deploy(index % 3 === 0 ? "macrophage" : "nk", slot.id));
+  });
+
+  for (let time = 0; time <= 180000 && runtime.status === "playing"; time += 250) {
+    atp.update(time, 250);
+    waves.update(time, 250);
+    enemies.update(time, 250);
+    boss.update();
+    cells.update(time);
+    projectiles.update(time, 250);
+  }
+
+  assert.equal(runtime.status, "victory");
+  assert.ok(runtime.tissueIntegrity > 0);
 });

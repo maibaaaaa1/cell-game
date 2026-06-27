@@ -21,6 +21,9 @@ export const BATTLE_BALANCE_CONFIG = {
   combat: {
     maxActiveProjectiles: 120,
     maxActiveEnemies: 80,
-    stateEmitIntervalMs: 250
+    stateEmitIntervalMs: 250,
+    firstLevelSpawnIntervalMs: 750,
+    firstLevelNormalPreparationMs: 5000,
+    firstLevelBossPreparationMs: 8000
   }
 } as const;

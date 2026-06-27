@@ -1,8 +1,15 @@
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { WAVE_CONFIG } from "../configs/waveConfig.ts";
 import type { BattleSystem } from "../types/battle.ts";
 import type { EnemyKind } from "../types/game.ts";
 import type { BattleRouteSide, BattleRuntimeState } from "./BattleRuntimeState.ts";
 import type { EnemySystem } from "./EnemySystem.ts";
+
+interface PendingSpawn {
+  enemy: EnemyKind;
+  route: BattleRouteSide;
+  spawnAt: number;
+}
 
 export class WaveSystem implements BattleSystem {
   readonly name = "WaveSystem";
@@ -11,6 +18,7 @@ export class WaveSystem implements BattleSystem {
   private readonly enemies?: EnemySystem;
   private nextWaveAt = 0;
   private elapsed = 0;
+  private pendingSpawns: PendingSpawn[] = [];
 
   constructor(waveSetId = "legacyTwentyWave", runtime?: BattleRuntimeState, enemies?: EnemySystem) {
     this.waveSetId = waveSetId;
@@ -45,7 +53,9 @@ export class WaveSystem implements BattleSystem {
 
     const delta = maybeDelta ?? _timeOrDelta;
     this.elapsed += delta;
-    if (this.runtime.enemies.length > 0 || this.elapsed < this.nextWaveAt) {
+    this.spawnReadyEnemies();
+
+    if (this.pendingSpawns.length > 0 || this.runtime.enemies.length > 0 || this.elapsed < this.nextWaveAt) {
       return;
     }
 
@@ -64,7 +74,6 @@ export class WaveSystem implements BattleSystem {
     if (!this.runtime || !this.enemies) {
       return;
     }
-    const enemies = this.enemies;
 
     const nextWave = this.runtime.wave + 1;
     const wave = this.waveSet.waves.find((item) => item.wave === nextWave);
@@ -73,13 +82,22 @@ export class WaveSystem implements BattleSystem {
     }
 
     this.runtime.wave = nextWave;
+    const spawnInterval = BATTLE_BALANCE_CONFIG.combat.firstLevelSpawnIntervalMs;
+    let spawnIndex = 0;
     wave.groups.forEach((group, groupIndex) => {
       for (let index = 0; index < group.count; index += 1) {
-        enemies.spawn(group.enemy, this.routeFor(group.route, index + groupIndex), Math.max(0, -0.025 * index));
+        this.pendingSpawns.push({
+          enemy: group.enemy,
+          route: this.routeFor(group.route, index + groupIndex),
+          spawnAt: this.elapsed + spawnIndex * spawnInterval
+        });
+        spawnIndex += 1;
       }
     });
     this.runtime.message = `第${nextWave}波：${wave.label}`;
-    this.nextWaveAt = this.elapsed + (nextWave === this.maxWave - 1 ? 8000 : 5000);
+    this.spawnReadyEnemies();
+    const spawnDuration = Math.max(0, spawnIndex - 1) * spawnInterval;
+    this.nextWaveAt = this.elapsed + spawnDuration + this.preparationAfterWave(nextWave);
   }
 
   private repeat(kind: EnemyKind, count: number): EnemyKind[] {
@@ -93,6 +111,41 @@ export class WaveSystem implements BattleSystem {
   cleanup(): void {
     this.elapsed = 0;
     this.nextWaveAt = 0;
+    this.pendingSpawns = [];
+  }
+
+  getPendingSpawnCount(): number {
+    return this.pendingSpawns.length;
+  }
+
+  getPreparationAfterWave(wave: number): number {
+    return this.preparationAfterWave(wave);
+  }
+
+  getSpawnIntervalMs(): number {
+    return BATTLE_BALANCE_CONFIG.combat.firstLevelSpawnIntervalMs;
+  }
+
+  private spawnReadyEnemies(): void {
+    if (!this.enemies || this.pendingSpawns.length === 0) {
+      return;
+    }
+
+    const ready = this.pendingSpawns.filter((spawn) => spawn.spawnAt <= this.elapsed);
+    this.pendingSpawns = this.pendingSpawns.filter((spawn) => spawn.spawnAt > this.elapsed);
+    for (const spawn of ready) {
+      this.enemies.spawn(spawn.enemy, spawn.route, 0);
+    }
+  }
+
+  private preparationAfterWave(wave: number): number {
+    if (wave >= this.maxWave) {
+      return 0;
+    }
+
+    return wave === this.maxWave - 1
+      ? BATTLE_BALANCE_CONFIG.combat.firstLevelBossPreparationMs
+      : BATTLE_BALANCE_CONFIG.combat.firstLevelNormalPreparationMs;
   }
 
   private routeFor(route: "left" | "right" | "mixed" | undefined, index: number): BattleRouteSide {
