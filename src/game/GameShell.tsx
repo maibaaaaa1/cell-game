@@ -1,8 +1,7 @@
 import Phaser from "phaser";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
-import { CELL_CONFIGS, CELL_ORDER } from "../configs/cells";
-import { SKILL_CONFIGS, SKILL_ORDER } from "../configs/skills";
+import { CELL_CONFIGS } from "../configs/cells";
 import { TEXT_CONFIG } from "../configs/textConfig";
 import { BattleScene } from "../scenes/BattleScene";
 import { onBattleState, sendBattleCommand } from "../systems/gameBus";
@@ -36,15 +35,20 @@ const INITIAL_STATE: BattleState = {
     cart: 0
   },
   kills: {
+    normalVirus: 0,
+    fastVirus: 0,
     bacteria: 0,
     fluVirus: 0,
     resistantBacteria: 0,
     mutantVirus: 0,
     miniVirus: 0,
     cancerCell: 0,
-    cancerKing: 0
+    cancerKing: 0,
+    mutantVirusCluster: 0
   }
 };
+
+const FIRST_LEVEL_CELLS: CellKind[] = ["macrophage", "nk"];
 
 export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameShellProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -164,8 +168,8 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
         </div>
 
         <footer className="battle-action-bar grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
-          <div className="cell-card-strip grid grid-cols-3 gap-2">
-            {CELL_ORDER.map((kind) => {
+          <div className="cell-card-strip mx-auto grid w-full max-w-sm grid-cols-2 gap-2">
+            {FIRST_LEVEL_CELLS.map((kind) => {
               const cell = CELL_CONFIGS[kind];
               const selected = state.selectedCell === kind;
               return (
@@ -189,32 +193,6 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
 
           <div className="grid gap-2">
-            <div className="grid grid-cols-3 gap-2">
-              {SKILL_ORDER.map((skill) => {
-                const config = SKILL_CONFIGS[skill];
-                const cooldown = state.skillCooldowns[skill];
-                return (
-                  <button
-                    key={skill}
-                    className="skill-button"
-                    disabled={cooldown > 0}
-                    onClick={() => sendBattleCommand({ type: "use-skill", skill })}
-                    title={config.description}
-                  >
-                    <strong>{config.name}</strong>
-                    <span>{cooldown > 0 ? `${cooldown}s` : "可用"}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex min-h-8 flex-wrap gap-2">
-              {state.stormActive && <span className="buff-pill storm-pill">免疫风暴</span>}
-              {state.activeBuffs.map((buff) => (
-                <span key={buff.id} className="buff-pill">
-                  {buff.name} {buff.secondsLeft}s
-                </span>
-              ))}
-            </div>
             <div className="min-h-12 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold leading-6 text-white">
               {level.chapter} · {level.name}：{state.message}
             </div>

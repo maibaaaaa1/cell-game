@@ -1,46 +1,37 @@
-import type { RouteConfig, RouteSlotConfig } from "../types/config";
+import type { RouteConfig, RouteSlotConfig } from "../types/config.ts";
 
-function buildSlots(): RouteSlotConfig[] {
-  const slots: RouteSlotConfig[] = [];
-  for (let row = 0; row < 9; row += 1) {
-    for (let col = 0; col < 5; col += 1) {
-      slots.push({
-        id: `r${row}-c${col}`,
-        row,
-        col,
-        x: 0.2 + col * 0.13,
-        y: 0.14 + row * 0.085
-      });
-    }
-  }
-  return slots;
-}
-
-const noseSlots = buildSlots();
+const noseSlots: RouteSlotConfig[] = [
+  { id: "slot-1", row: 0, col: 0, x: 0.24, y: 0.27 },
+  { id: "slot-2", row: 0, col: 1, x: 0.42, y: 0.25 },
+  { id: "slot-3", row: 0, col: 2, x: 0.62, y: 0.28 },
+  { id: "slot-4", row: 1, col: 0, x: 0.3, y: 0.52 },
+  { id: "slot-5", row: 1, col: 1, x: 0.5, y: 0.56 },
+  { id: "slot-6", row: 1, col: 2, x: 0.7, y: 0.52 },
+  { id: "slot-7", row: 2, col: 1, x: 0.55, y: 0.39 }
+];
 
 export const ROUTE_CONFIG: Record<string, RouteConfig> = {
-  noseMucosaMain: {
-    id: "noseMucosaMain",
-    name: "鼻腔黏膜主通路",
+  noseLeft: {
+    id: "noseLeft",
+    name: "鼻腔左路",
     points: [
-      { x: 0.02, y: 0.18 },
-      { x: 0.18, y: 0.18 },
-      { x: 0.42, y: 0.3 },
-      { x: 0.62, y: 0.48 },
-      { x: 0.84, y: 0.58 },
-      { x: 0.96, y: 0.58 }
+      { x: 0.04, y: 0.24 },
+      { x: 0.22, y: 0.24 },
+      { x: 0.42, y: 0.31 },
+      { x: 0.64, y: 0.34 },
+      { x: 0.94, y: 0.34 }
     ],
     cellSlots: noseSlots
   },
-  noseMucosaLower: {
-    id: "noseMucosaLower",
-    name: "鼻腔黏膜下通路",
+  noseRight: {
+    id: "noseRight",
+    name: "鼻腔右路",
     points: [
-      { x: 0.02, y: 0.72 },
-      { x: 0.24, y: 0.68 },
-      { x: 0.5, y: 0.6 },
-      { x: 0.76, y: 0.7 },
-      { x: 0.96, y: 0.7 }
+      { x: 0.04, y: 0.66 },
+      { x: 0.24, y: 0.66 },
+      { x: 0.44, y: 0.59 },
+      { x: 0.66, y: 0.62 },
+      { x: 0.94, y: 0.62 }
     ],
     cellSlots: noseSlots
   }

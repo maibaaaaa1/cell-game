@@ -8,12 +8,14 @@ export const LEVEL_CONFIG: { chapters: ChapterConfig[] } = {
       levels: [
         {
           id: "nose-1",
+          numericId: 1,
           chapterId: "chapter-nose",
-          title: "黏膜巡逻",
+          title: "鼻腔保卫战",
           mapKey: "nose",
-          routeId: "noseMucosaMain",
-          waveSetId: "noseTraining",
-          recommendedCells: ["macrophage", "bcell"],
+          routeId: "noseLeft",
+          routeIds: ["noseLeft", "noseRight"],
+          waveSetId: "noseFirstLevel",
+          recommendedCells: ["macrophage", "nk"],
           unlockedByDefault: true
         },
         {
@@ -21,7 +23,8 @@ export const LEVEL_CONFIG: { chapters: ChapterConfig[] } = {
           chapterId: "chapter-nose",
           title: "喷嚏警报",
           mapKey: "nose",
-          routeId: "noseMucosaLower",
+          routeId: "noseRight",
+          routeIds: ["noseLeft", "noseRight"],
           waveSetId: "noseTraining",
           recommendedCells: ["macrophage", "nk"],
           unlockedByDefault: false
@@ -31,7 +34,8 @@ export const LEVEL_CONFIG: { chapters: ChapterConfig[] } = {
           chapterId: "chapter-nose",
           title: "抗体布防",
           mapKey: "nose",
-          routeId: "noseMucosaMain",
+          routeId: "noseLeft",
+          routeIds: ["noseLeft", "noseRight"],
           waveSetId: "noseTraining",
           recommendedCells: ["bcell", "dendritic"],
           unlockedByDefault: false
@@ -41,7 +45,8 @@ export const LEVEL_CONFIG: { chapters: ChapterConfig[] } = {
           chapterId: "chapter-nose",
           title: "炎症升温",
           mapKey: "nose",
-          routeId: "noseMucosaLower",
+          routeId: "noseRight",
+          routeIds: ["noseLeft", "noseRight"],
           waveSetId: "noseTraining",
           recommendedCells: ["cd4", "nk"],
           unlockedByDefault: false
@@ -51,7 +56,8 @@ export const LEVEL_CONFIG: { chapters: ChapterConfig[] } = {
           chapterId: "chapter-nose",
           title: "鼻腔总防线",
           mapKey: "nose",
-          routeId: "noseMucosaMain",
+          routeId: "noseLeft",
+          routeIds: ["noseLeft", "noseRight"],
           waveSetId: "legacyTwentyWave",
           recommendedCells: ["macrophage", "bcell", "cd8"],
           unlockedByDefault: false

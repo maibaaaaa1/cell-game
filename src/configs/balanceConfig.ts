@@ -11,10 +11,12 @@ export const BATTLE_BALANCE_CONFIG = {
     safePadding: 16
   },
   resources: {
-    initialAtp: 180,
-    initialTissueIntegrity: 20,
-    atpTickMs: 5000,
-    atpPerTick: 20
+    initialAtp: 160,
+    maxAtp: 300,
+    initialTissueIntegrity: 100,
+    atpTickMs: 1000,
+    atpPerTick: 6,
+    atpPerSecond: 6
   },
   combat: {
     maxActiveProjectiles: 120,

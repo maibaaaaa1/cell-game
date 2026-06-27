@@ -200,13 +200,16 @@ export class Enemy extends Phaser.GameObjects.Container {
 
   private getShortName(kind: EnemyKind): string {
     const names: Record<EnemyKind, string> = {
+      normalVirus: "普毒",
+      fastVirus: "快毒",
       bacteria: "菌",
       fluVirus: "毒",
       resistantBacteria: "耐",
       mutantVirus: "变",
       miniVirus: "小",
       cancerCell: "癌",
-      cancerKing: "癌王"
+      cancerKing: "癌王",
+      mutantVirusCluster: "毒团"
     };
 
     return names[kind];

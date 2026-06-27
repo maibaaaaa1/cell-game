@@ -1,6 +1,32 @@
 import type { EnemyConfig } from "../types/game";
 
 export const ENEMY_CONFIGS: Record<EnemyConfig["id"], EnemyConfig> = {
+  normalVirus: {
+    id: "normalVirus",
+    name: "普通病毒",
+    health: 60,
+    speed: 1,
+    reward: 7,
+    damage: 5,
+    color: 0x38bdf8,
+    isVirus: true,
+    description: "第一关基础病毒，数量稳定推进。",
+    weakness: "巨噬细胞与NK细胞都能有效处理。",
+    healthTip: "鼻腔黏膜和良好作息是呼吸道防线的一部分。"
+  },
+  fastVirus: {
+    id: "fastVirus",
+    name: "快速病毒",
+    health: 45,
+    speed: 1.45,
+    reward: 8,
+    damage: 4,
+    color: 0x0ea5e9,
+    isVirus: true,
+    description: "速度更快，容易突破薄弱防线。",
+    weakness: "NK细胞适合优先锁定快速病毒。",
+    healthTip: "勤洗手、通风和减少近距离暴露可降低病毒传播机会。"
+  },
   bacteria: {
     id: "bacteria",
     name: "普通细菌",
@@ -90,5 +116,18 @@ export const ENEMY_CONFIGS: Record<EnemyConfig["id"], EnemyConfig> = {
     description: "终极Boss，拥有分裂、回血、召唤、免疫护盾。",
     weakness: "CD8杀伤T细胞、CAR-T疗法和疫苗接种技能组合。",
     healthTip: "癌症治疗强调早筛、规范治疗与多学科协作。"
+  },
+  mutantVirusCluster: {
+    id: "mutantVirusCluster",
+    name: "变异病毒团",
+    health: 800,
+    speed: 0.45,
+    reward: 35,
+    damage: 25,
+    color: 0x7c3aed,
+    isVirus: true,
+    description: "第一关Boss，半血会分裂出小病毒。",
+    weakness: "集中火力，提前布置NK细胞。",
+    healthTip: "免疫系统面对变异病毒时更依赖协同识别和快速反应。"
   }
 };

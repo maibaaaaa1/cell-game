@@ -119,18 +119,20 @@ export class GridSystem {
   }
 
   private drawRoutePreview(graphics: Phaser.GameObjects.Graphics): void {
-    const route = ROUTE_CONFIG.noseMucosaMain;
-    graphics.lineStyle(4, 0xffffff, 0.32);
-    route.points.forEach((point, index) => {
-      const world = this.toWorldPoint(point);
-      if (index === 0) {
-        graphics.beginPath();
-        graphics.moveTo(world.x, world.y);
-        return;
-      }
-      graphics.lineTo(world.x, world.y);
+    ["noseLeft", "noseRight"].forEach((routeId) => {
+      const route = ROUTE_CONFIG[routeId];
+      graphics.lineStyle(4, 0xffffff, 0.32);
+      route.points.forEach((point, index) => {
+        const world = this.toWorldPoint(point);
+        if (index === 0) {
+          graphics.beginPath();
+          graphics.moveTo(world.x, world.y);
+          return;
+        }
+        graphics.lineTo(world.x, world.y);
+      });
+      graphics.strokePath();
     });
-    graphics.strokePath();
   }
 
   private getPalette(mapKey: string): { background: number; lane: number; laneLine: number } {

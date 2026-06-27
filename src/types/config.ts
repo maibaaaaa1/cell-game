@@ -21,6 +21,7 @@ export interface RouteConfig {
 export interface WaveSpawnGroupConfig {
   enemy: EnemyKind;
   count: number;
+  route?: "left" | "right" | "mixed";
   delayMs?: number;
 }
 
@@ -38,10 +39,12 @@ export interface WaveSetConfig {
 
 export interface ChapterLevelConfig {
   id: string;
+  numericId?: number;
   chapterId: string;
   title: string;
   mapKey: string;
   routeId: string;
+  routeIds: string[];
   waveSetId: string;
   recommendedCells: CellKind[];
   unlockedByDefault: boolean;

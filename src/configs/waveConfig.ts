@@ -1,15 +1,32 @@
-import type { EnemyKind } from "../types/game";
-import type { WaveConfig, WaveSetConfig } from "../types/config";
+import type { WaveConfig, WaveSetConfig } from "../types/config.ts";
+import type { EnemyKind } from "../types/game.ts";
 
-function groups(wave: number, label: string, entries: Array<[EnemyKind, number]>): WaveConfig {
+type WaveEntry = [EnemyKind, number] | [EnemyKind, number, "left" | "right" | "mixed"];
+
+function groups(wave: number, label: string, entries: WaveEntry[]): WaveConfig {
   return {
     wave,
     label,
-    groups: entries.map(([enemy, count]) => ({ enemy, count }))
+    groups: entries.map(([enemy, count, route]) => ({ enemy, count, route }))
   };
 }
 
 export const WAVE_CONFIG: Record<string, WaveSetConfig> = {
+  noseFirstLevel: {
+    id: "noseFirstLevel",
+    name: "鼻腔保卫战第一关",
+    waves: [
+      groups(1, "普通病毒 × 4", [["normalVirus", 4, "left"]]),
+      groups(2, "普通病毒 × 6", [["normalVirus", 6, "left"]]),
+      groups(3, "普通病毒与快速病毒", [["normalVirus", 5, "left"], ["fastVirus", 2, "left"]]),
+      groups(4, "左右两路病毒", [["normalVirus", 5, "left"], ["normalVirus", 5, "right"]]),
+      groups(5, "左右混合病毒", [["normalVirus", 6, "mixed"], ["fastVirus", 3, "mixed"]]),
+      groups(6, "细菌压迫", [["bacteria", 3, "mixed"], ["normalVirus", 6, "mixed"]]),
+      groups(7, "快速病毒群", [["fastVirus", 6, "mixed"], ["normalVirus", 8, "mixed"]]),
+      groups(8, "Boss前压迫", [["normalVirus", 8, "mixed"], ["fastVirus", 4, "mixed"], ["bacteria", 3, "mixed"]]),
+      groups(9, "Boss 变异病毒团", [["mutantVirusCluster", 1, "mixed"]])
+    ]
+  },
   noseTraining: {
     id: "noseTraining",
     name: "鼻腔训练波次",
