@@ -21,6 +21,11 @@ test("asset config contains first level required sprite and icon paths", () => {
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.fallback, "nasal_mucosa_2_5d");
   assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity >= 0.55);
   assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity <= 0.75);
+  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.enabled, false);
+  assert.equal(
+    ASSET_CONFIG.backgrounds.battle01Nasal.referencePath,
+    "/assets/images/backgrounds/reference/bg_battle_01_nasal_concept_reference.png"
+  );
 
   assert.deepEqual(FIRST_LEVEL_REQUIRED_ASSET_KEYS, [
     "cell_macrophage_256",
@@ -103,10 +108,15 @@ test("battle background config is optional and can fall back without requiring a
   const root = fileURLToPath(new URL("../", import.meta.url));
   const background = ASSET_CONFIG.backgrounds.battle01Nasal;
   const absolutePath = join(root, "public", background.image.path.replace(/^\//, ""));
+  const referencePath = background.referencePath
+    ? join(root, "public", background.referencePath.replace(/^\//, ""))
+    : undefined;
 
   assert.equal(background.optional, true);
+  assert.equal(background.enabled, false);
   assert.equal(background.fallback, "nasal_mucosa_2_5d");
-  assert.equal(typeof existsSync(absolutePath), "boolean");
+  assert.equal(existsSync(absolutePath), false);
+  assert.equal(referencePath ? existsSync(referencePath) : false, true);
 });
 
 test("battle scene loads optional sprites and keeps fallback rendering guarded", () => {
@@ -115,6 +125,8 @@ test("battle scene loads optional sprites and keeps fallback rendering guarded",
   assert.ok(source.includes("ASSET_CONFIG"));
   assert.ok(source.includes("this.load.image"));
   assert.ok(source.includes("ASSET_CONFIG.backgrounds.battle01Nasal"));
+  assert.ok(source.includes("if (background.enabled)"));
+  assert.ok(source.includes("background.enabled && this.textures.exists"));
   assert.ok(source.includes("this.textures.exists"));
   assert.ok(source.includes("drawBackgroundImage"));
   assert.ok(source.includes("drawNasalMucosaFallback"));

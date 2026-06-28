@@ -34,6 +34,8 @@ export interface BackgroundAssetConfig {
   fallback: "nasal_mucosa_2_5d";
   opacity: number;
   optional: boolean;
+  enabled: boolean;
+  referencePath?: string;
 }
 
 export const ASSET_CONFIG = {
@@ -103,11 +105,24 @@ export const ASSET_CONFIG = {
     }
   },
   backgrounds: {
+    /*
+     * battle01Nasal.image must be a pure battlefield background. It must not
+     * contain HUD, numbers, Chinese text, cards, buttons, icons, characters,
+     * enemies, bosses, health bars, routes, deploy slots, or info panels.
+     *
+     * Allowed content: nasal mucosa interior space, soft tissue walls and
+     * texture, blue-green immune ambience, central empty play space, bottom
+     * core-area atmosphere, and subtle vertical perspective. Until a pure
+     * background is available, keep enabled false so the code-drawn fallback
+     * remains the active battlefield layer.
+     */
     battle01Nasal: {
       image: { key: "bg_battle_01_nasal", path: "/assets/images/backgrounds/bg_battle_01_nasal.png" },
       fallback: "nasal_mucosa_2_5d",
       opacity: 0.62,
-      optional: true
+      optional: true,
+      enabled: false,
+      referencePath: "/assets/images/backgrounds/reference/bg_battle_01_nasal_concept_reference.png"
     }
   },
   audio: {

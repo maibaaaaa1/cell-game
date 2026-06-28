@@ -55,7 +55,9 @@ export class BattleScene extends Phaser.Scene {
 
   preload(): void {
     const background = ASSET_CONFIG.backgrounds.battle01Nasal;
-    this.load.image(background.image.key, background.image.path);
+    if (background.enabled) {
+      this.load.image(background.image.key, background.image.path);
+    }
     for (const asset of this.firstLevelVisualAssets()) {
       this.load.image(asset.sprite.key, asset.sprite.path);
       if (asset.icon) {
@@ -195,7 +197,7 @@ export class BattleScene extends Phaser.Scene {
   private drawBattlefield(): void {
     this.cameras.main.setBackgroundColor(0xdff7ff);
     const background = ASSET_CONFIG.backgrounds.battle01Nasal;
-    if (this.textures.exists(background.image.key)) {
+    if (background.enabled && this.textures.exists(background.image.key)) {
       this.drawBackgroundImage(background.image.key, background.opacity);
     } else {
       this.drawNasalMucosaFallback();
