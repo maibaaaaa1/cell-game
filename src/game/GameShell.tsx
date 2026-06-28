@@ -134,7 +134,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
     <main className="game-shell text-slate-950">
       <div className="landscape-warning">{TEXT_CONFIG.orientationWarning}</div>
       <section className="portrait-battle-shell mx-auto flex w-full max-w-[540px] flex-col gap-2">
-        <header className="battle-hud rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
+        <header className="battle-hud rounded-2xl p-2">
           <div className="battle-hud-main">
             <div className="battle-hud-stats grid grid-cols-3 gap-2 text-sm font-black">
               <HudItem label={FIRST_LEVEL_HUD_LABELS[0]} value={state.tissueIntegrity} tone="text-danger" />
@@ -147,7 +147,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
         </header>
 
-        <div className="battle-canvas-frame rounded-2xl border border-white/80 bg-white/70 p-2 shadow-soft">
+        <div className="battle-canvas-frame rounded-2xl p-2">
           <div
             ref={hostRef}
             className={`phaser-host relative w-full overflow-hidden rounded-xl bg-white ${
@@ -161,7 +161,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
         </div>
 
-        <footer className="battle-action-bar grid gap-2 rounded-2xl border border-white/80 bg-white/90 p-2 shadow-soft">
+        <footer className="battle-action-bar grid gap-2 rounded-2xl p-2">
           <div className="cell-card-strip mx-auto grid w-full max-w-sm grid-cols-2 gap-2">
             {actionCells.map((cell) => {
               const selected = state.selectedCell === cell.kind;
@@ -188,7 +188,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
 
           <div className="grid gap-2">
-            <div className="battle-status-message rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold leading-5 text-white">
+            <div className="battle-status-message rounded-xl px-4 py-2 text-sm font-bold leading-5 text-white">
               {level.chapter} · {level.name}：{state.message}
             </div>
           </div>
@@ -217,7 +217,10 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
 
         {state.result && (
           <div className="battle-result-actions">
-            <strong>{state.result === "victory" ? "鼻腔保卫战胜利" : "鼻腔防线失守"}</strong>
+            <strong className="battle-result-title">{state.result === "victory" ? "防线胜利" : "免疫防线被突破"}</strong>
+            <span className="battle-result-copy">
+              {state.result === "victory" ? "鼻腔保卫战完成。" : "免疫系统尽力了，重新部署，再来一把。"}
+            </span>
             <div className="grid w-full grid-cols-2 gap-2">
               <button className="primary-button" onClick={() => sendBattleCommand(BATTLE_RESTART_COMMAND)}>
                 再战一局

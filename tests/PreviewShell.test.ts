@@ -28,6 +28,8 @@ test("preview home copy no longer exposes V2.0 shell wording", () => {
   const source = readFileSync(new URL("../src/components/MainMenu.tsx", import.meta.url), "utf8");
 
   assert.equal(PREVIEW_VERSION_LABEL, "V0.1 Preview");
+  assert.ok(source.includes("部署免疫细胞，守住人体第一道防线。"));
+  assert.ok(source.includes("当前预览聚焦第一关闭环"));
   assert.ok(!source.includes("V2.0"));
 });
 
@@ -36,6 +38,8 @@ test("first level card shows nine waves instead of the old twenty-wave copy", ()
   const firstLevel = LEVELS[0];
 
   assert.equal(getLevelStatusText(firstLevel, true), "可挑战 · 9波");
+  assert.equal(getLevelStatusText(LEVELS[1], true), "后续版本开放");
+  assert.ok(source.includes("当前测试关"));
   assert.ok(!source.includes("20波"));
 });
 
@@ -77,6 +81,46 @@ test("battle page layout keeps HUD, canvas, and bottom action bar in one viewpor
   assert.match(styles, /\.battle-canvas-frame\s*{[^}]*flex: 1 1 0;/s);
   assert.match(styles, /\.battle-action-bar\s*{[^}]*flex: 0 0 auto;/s);
   assert.match(styles, /\.phaser-host\s*{[^}]*min-height: 0;/s);
+});
+
+test("v0.1 skin exposes immune sci-fi theme variables and product shell classes", () => {
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const mainMenu = readFileSync(new URL("../src/components/MainMenu.tsx", import.meta.url), "utf8");
+
+  assert.ok(styles.includes("--immune-blue: #3CCBFF"));
+  assert.ok(styles.includes("--immune-green: #43E0C2"));
+  assert.ok(styles.includes("--deep-navy: #071123"));
+  assert.ok(styles.includes("--atp-orange: #FF9F1C"));
+  assert.ok(styles.includes("--preview-card: #FFFFFF"));
+  assert.ok(styles.includes(".home-hero-panel"));
+  assert.ok(styles.includes(".immune-orbit"));
+  assert.ok(mainMenu.includes("home-hero-panel"));
+  assert.ok(mainMenu.includes("immune-orbit"));
+});
+
+test("battle modals use v0.1 result copy and product shell classes", () => {
+  const source = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.ok(source.includes("battle-result-title"));
+  assert.ok(source.includes("防线胜利"));
+  assert.ok(source.includes("鼻腔保卫战完成。"));
+  assert.ok(source.includes("免疫防线被突破"));
+  assert.ok(source.includes("免疫系统尽力了，重新部署，再来一把。"));
+  assert.ok(styles.includes(".battle-result-title"));
+  assert.ok(styles.includes(".pause-panel"));
+});
+
+test("stage 2.13 skin does not change frozen first level balance", () => {
+  const balance = readFileSync(new URL("../src/configs/balanceConfig.ts", import.meta.url), "utf8");
+  const enemies = readFileSync(new URL("../src/configs/enemyConfig.ts", import.meta.url), "utf8");
+
+  assert.ok(balance.includes("initialAtp: 120"));
+  assert.ok(balance.includes("atpPerSecond: 2.5"));
+  assert.ok(balance.includes("maxAtp: 220"));
+  assert.ok(balance.includes("nkDamageMultiplier: 0.72"));
+  assert.ok(balance.includes("nkAttackRateMultiplier: 0.72"));
+  assert.ok(enemies.includes("mutantVirusCluster: { id: \"mutantVirusCluster\", health: 2200, speed: 0.28"));
 });
 
 test("first level core is drawn at the bottom instead of the old right side", () => {

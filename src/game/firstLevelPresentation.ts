@@ -35,10 +35,18 @@ export function getLevelWaveCount(level: LevelConfig): number {
 
 export function getLevelStatusText(level: LevelConfig, unlocked: boolean): string {
   if (!unlocked) {
-    return "后续解锁";
+    return "后续版本开放";
+  }
+
+  if (level.id !== FIRST_LEVEL_ID) {
+    return "后续版本开放";
   }
 
   return `可挑战 · ${getLevelWaveCount(level)}波`;
+}
+
+export function isPreviewPlayableLevel(level: LevelConfig, unlocked: boolean): boolean {
+  return unlocked && level.id === FIRST_LEVEL_ID;
 }
 
 export function shouldShowDebugOverlay(search = ""): boolean {
