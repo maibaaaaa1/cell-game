@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { ASSET_CONFIG, getCellVisualAsset, getEnemyOrBossVisualAsset, type VisualAssetConfig } from "../configs/assetConfig.ts";
 import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { CELL_CONFIG } from "../configs/cellConfig.ts";
 import { FIRST_LEVEL_CELL_ORDER, FIRST_LEVEL_ROUTE_IDS, FIRST_LEVEL_WAVE_SET_ID } from "../configs/firstLevelConfig.ts";
@@ -52,6 +53,15 @@ export class BattleScene extends Phaser.Scene {
     this.audio = new AudioCueSystem({ enabled: soundEnabled });
   }
 
+  preload(): void {
+    for (const asset of this.firstLevelVisualAssets()) {
+      this.load.image(asset.sprite.key, asset.sprite.path);
+      if (asset.icon) {
+        this.load.image(asset.icon.key, asset.icon.path);
+      }
+    }
+  }
+
   create(): void {
     this.createRuntime();
     this.drawBattlefield();
@@ -82,6 +92,14 @@ export class BattleScene extends Phaser.Scene {
     const boss = new BossSystem(this.runtime, enemies);
     const waves = new WaveSystem(FIRST_LEVEL_WAVE_SET_ID, this.runtime, enemies);
     this.loop = new BattleLoopSystem([this.atp, waves, enemies, boss, this.cells, projectiles]);
+  }
+
+  private firstLevelVisualAssets(): VisualAssetConfig[] {
+    return [
+      ...Object.values(ASSET_CONFIG.cells),
+      ...Object.values(ASSET_CONFIG.enemies),
+      ...Object.values(ASSET_CONFIG.bosses)
+    ];
   }
 
   private bindCommands(): void {
@@ -328,28 +346,28 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createCellView(cell: RuntimeCell, x: number, y: number): Phaser.GameObjects.Container {
-    const color = cell.kind === "macrophage" ? 0xff9f43 : 0x7c3aed;
-    const shape =
-      cell.kind === "macrophage"
-        ? this.add.circle(0, 0, 22, color, 1)
-        : this.add.star(0, 0, 7, 10, 24, color, 1);
-    shape.setStrokeStyle(3, 0xffffff, 0.95);
+    const asset = getCellVisualAsset(cell.kind);
+    const visual = asset && this.textures.exists(asset.sprite.key)
+      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(asset.displaySize, asset.displaySize)
+      : this.createCellFallbackShape(cell.kind, asset);
     const label = this.add
-      .text(0, 0, cell.kind === "macrophage" ? "巨" : "NK", {
+      .text(0, 18, cell.kind === "macrophage" ? "巨" : "NK", {
         fontFamily: "system-ui",
-        fontSize: "12px",
+        fontSize: "11px",
         fontStyle: "900",
         color: "#ffffff"
       })
       .setOrigin(0.5);
-    return this.add.container(x, y, [shape, label]);
+    return this.add.container(x, y, [visual, label]);
   }
 
   private createEnemyView(enemy: RuntimeEnemy, x: number, y: number): Phaser.GameObjects.Container {
-    const color = enemy.kind === "bacteria" ? 0x84cc16 : enemy.kind === "fastVirus" ? 0x0ea5e9 : enemy.kind === "mutantVirusCluster" ? 0x7c3aed : 0x38bdf8;
-    const radius = enemy.kind === "mutantVirusCluster" ? 30 : enemy.kind === "bacteria" ? 20 : 16;
-    const shape = enemy.kind === "bacteria" ? this.add.circle(0, 0, radius, color, 1) : this.add.star(0, 0, 9, radius * 0.6, radius, color, 1);
-    shape.setStrokeStyle(3, 0xffffff, 0.9);
+    const asset = getEnemyOrBossVisualAsset(enemy.kind);
+    const size = asset?.displaySize ?? (enemy.kind === "mutantVirusCluster" ? 86 : enemy.kind === "bacteria" ? 40 : enemy.kind === "miniVirus" ? 24 : 32);
+    const radius = size / 2;
+    const visual = asset && this.textures.exists(asset.sprite.key)
+      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(size, size)
+      : this.createEnemyFallbackShape(enemy.kind, asset, radius);
     const hpBack = this.add.rectangle(0, -radius - 9, radius * 2, 5, 0xffffff, 0.92);
     const hp = this.add.rectangle(-radius, -radius - 9, radius * 2, 5, 0x22c55e, 1).setOrigin(0, 0.5).setName("hp");
     const label = this.add
@@ -360,7 +378,25 @@ export class BattleScene extends Phaser.Scene {
         color: "#ffffff"
       })
       .setOrigin(0.5);
-    return this.add.container(x, y, [shape, label, hpBack, hp]);
+    return this.add.container(x, y, [visual, label, hpBack, hp]);
+  }
+
+  private createCellFallbackShape(kind: CellKind, asset?: VisualAssetConfig): Phaser.GameObjects.Shape {
+    const color = asset?.fallbackColor ?? (kind === "macrophage" ? 0xff9f1c : 0x7c3aed);
+    const shape = kind === "macrophage"
+      ? this.add.circle(0, 0, 24, color, 1)
+      : this.add.star(0, 0, 7, 10, 25, color, 1);
+    shape.setStrokeStyle(3, 0xffffff, 0.95);
+    return shape;
+  }
+
+  private createEnemyFallbackShape(kind: EnemyKind, asset: VisualAssetConfig | undefined, radius: number): Phaser.GameObjects.Shape {
+    const color = asset?.fallbackColor ?? 0xff6b3d;
+    const shape = kind === "bacteria"
+      ? this.add.ellipse(0, 0, radius * 2.2, radius * 1.55, color, 1)
+      : this.add.star(0, 0, kind === "mutantVirusCluster" ? 13 : 9, radius * 0.58, radius, color, 1);
+    shape.setStrokeStyle(kind === "mutantVirusCluster" ? 4 : 3, 0xffffff, 0.9);
+    return shape;
   }
 
   private updateRangePreview(cell?: RuntimeCell | null): void {

@@ -1,5 +1,6 @@
 import { CELL_CONFIG } from "../configs/cellConfig.ts";
 import { CELL_CONFIGS } from "../configs/cells.ts";
+import { getCellVisualAsset } from "../configs/assetConfig.ts";
 import { FIRST_LEVEL_CELL_ORDER, FIRST_LEVEL_ID, FIRST_LEVEL_WAVE_SET_ID } from "../configs/firstLevelConfig.ts";
 import { WAVE_CONFIG } from "../configs/waveConfig.ts";
 import type { CellKind, LevelConfig } from "../types/game.ts";
@@ -13,16 +14,23 @@ export interface FirstLevelActionCell {
   role: string;
   cost: number;
   accent: string;
+  icon?: string;
+  fallbackColor?: number;
 }
 
 export function getFirstLevelActionCells(): FirstLevelActionCell[] {
-  return FIRST_LEVEL_CELL_ORDER.map((kind) => ({
-    kind,
-    name: CELL_CONFIGS[kind].name,
-    role: CELL_CONFIGS[kind].role,
-    cost: CELL_CONFIG[kind].cost,
-    accent: CELL_CONFIGS[kind].accent
-  }));
+  return FIRST_LEVEL_CELL_ORDER.map((kind) => {
+    const asset = getCellVisualAsset(kind);
+    return {
+      kind,
+      name: CELL_CONFIGS[kind].name,
+      role: CELL_CONFIGS[kind].role,
+      cost: CELL_CONFIG[kind].cost,
+      accent: CELL_CONFIGS[kind].accent,
+      icon: asset?.icon?.path,
+      fallbackColor: asset?.fallbackColor
+    };
+  });
 }
 
 export function getLevelWaveCount(level: LevelConfig): number {

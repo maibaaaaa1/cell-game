@@ -37,7 +37,21 @@ export function Codex({ save, onBack }: CodexProps) {
                   <span className="text-xs font-black text-lymph">{unlocked ? entry.type : "未解锁"}</span>
                   <h2 className="mt-1 text-xl font-black">{unlocked ? entry.name : "？？？"}</h2>
                 </div>
-                <div className="h-11 w-11 rounded-full bg-tissue shadow-inner" />
+                <div
+                  className="codex-avatar h-11 w-11 rounded-full bg-tissue shadow-inner"
+                  style={{ backgroundColor: unlocked && entry.fallbackColor !== undefined ? `#${entry.fallbackColor.toString(16).padStart(6, "0")}` : undefined }}
+                >
+                  {unlocked && entry.icon && (
+                    <img
+                      src={entry.icon}
+                      alt=""
+                      draggable={false}
+                      onError={(event) => {
+                        event.currentTarget.hidden = true;
+                      }}
+                    />
+                  )}
+                </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-slate-600">
                 {unlocked ? entry.description : "在战斗中部署或击败对应目标后自动记录。"}

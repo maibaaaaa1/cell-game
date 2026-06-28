@@ -178,7 +178,19 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                   }}
                   onClick={() => sendBattleCommand({ type: "select-cell", cell: cell.kind })}
                 >
-                  <span className="cell-dot" style={{ backgroundColor: cell.accent }} />
+                  <span className="cell-card-icon" style={{ backgroundColor: cell.accent }}>
+                    {cell.icon && (
+                      <img
+                        src={cell.icon}
+                        alt=""
+                        draggable={false}
+                        onError={(event) => {
+                          event.currentTarget.hidden = true;
+                        }}
+                      />
+                    )}
+                    <span className="cell-dot" style={{ backgroundColor: cell.accent }} />
+                  </span>
                   <strong>{cell.name}</strong>
                   <small>{cell.role}</small>
                   <span>{unaffordable ? `ATP不足 · ${cell.cost}` : `${cell.cost} ATP`}</span>
