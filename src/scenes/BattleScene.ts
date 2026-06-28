@@ -197,13 +197,15 @@ export class BattleScene extends Phaser.Scene {
   private drawBattlefield(): void {
     this.cameras.main.setBackgroundColor(0xdff7ff);
     const background = ASSET_CONFIG.backgrounds.battle01Nasal;
-    if (background.enabled && this.textures.exists(background.image.key)) {
+    const hasFinalBackground = background.enabled && this.textures.exists(background.image.key);
+    if (hasFinalBackground) {
       this.drawBackgroundImage(background.image.key, background.opacity);
     } else {
       this.drawNasalMucosaFallback();
+      this.drawMucosaWalls();
+      this.drawTissueTexture();
     }
-    this.drawMucosaWalls();
-    this.drawTissueTexture();
+    this.drawBattlefieldAtmosphere(hasFinalBackground);
     this.drawAirflowLines();
     this.drawRoutes();
     this.drawCore();
@@ -211,9 +213,28 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawBackgroundImage(textureKey: string, opacity: number): void {
-    this.add.image(this.centerX, this.centerY, textureKey).setDisplaySize(this.width, this.height).setAlpha(opacity).setDepth(0);
-    this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xf1fffb, 0.34).setDepth(0.1);
-    this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.08).setStrokeStyle(2, 0x8be8ff, 0.18).setDepth(0.2);
+    const image = this.add.image(this.centerX, this.centerY, textureKey).setAlpha(opacity).setDepth(0);
+    this.applyCoverCrop(image, textureKey);
+    this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xf5fffb, 0.12).setDepth(0.1);
+    this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x071123, 0.08).setDepth(0.12);
+    this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.04).setStrokeStyle(2, 0x8be8ff, 0.12).setDepth(0.2);
+  }
+
+  private applyCoverCrop(image: Phaser.GameObjects.Image, textureKey: string): void {
+    const source = this.textures.get(textureKey).getSourceImage() as { width?: number; height?: number };
+    const sourceWidth = source.width ?? this.width;
+    const sourceHeight = source.height ?? this.height;
+    const targetRatio = this.width / this.height;
+    const sourceRatio = sourceWidth / sourceHeight;
+
+    if (sourceRatio > targetRatio) {
+      const cropWidth = sourceHeight * targetRatio;
+      image.setCrop((sourceWidth - cropWidth) / 2, 0, cropWidth, sourceHeight);
+    } else {
+      const cropHeight = sourceWidth / targetRatio;
+      image.setCrop(0, Math.max(0, (sourceHeight - cropHeight) * 0.44), sourceWidth, cropHeight);
+    }
+    image.setDisplaySize(this.width, this.height);
   }
 
   private drawNasalMucosaFallback(): void {
@@ -232,6 +253,19 @@ export class BattleScene extends Phaser.Scene {
     rightWall.setRotation(Phaser.Math.DegToRad(5));
     this.add.ellipse(this.width * 0.08, this.height * 0.5, this.width * 0.16, this.height * 0.9, 0xffffff, 0.09).setDepth(0.36);
     this.add.ellipse(this.width * 0.92, this.height * 0.5, this.width * 0.16, this.height * 0.9, 0xffffff, 0.09).setDepth(0.36);
+  }
+
+  private drawBattlefieldAtmosphere(hasFinalBackground: boolean): void {
+    if (hasFinalBackground) {
+      this.add.ellipse(this.centerX, this.height * 0.22, this.width * 0.95, this.height * 0.28, 0x43e0c2, 0.08).setDepth(0.45);
+      this.add.ellipse(this.centerX, this.height * 0.74, this.width * 0.86, this.height * 0.34, 0xffeef2, 0.08).setDepth(0.45);
+      this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xeafffb, 0.05).setDepth(0.48);
+    }
+    const vignette = this.add.graphics().setDepth(0.6);
+    vignette.fillStyle(0x071123, hasFinalBackground ? 0.08 : 0.035);
+    vignette.fillRect(0, 0, this.width, this.height);
+    vignette.fillStyle(0xffffff, hasFinalBackground ? 0.06 : 0.08);
+    vignette.fillEllipse(this.centerX, this.centerY * 1.03, this.width * 0.82, this.height * 0.72);
   }
 
   private drawTissueTexture(): void {
@@ -292,18 +326,30 @@ export class BattleScene extends Phaser.Scene {
     const inner = this.add.graphics().setDepth(3);
     const highlight = this.add.graphics().setDepth(4);
 
-    this.strokeRoutePath(shadow, route.points, 56, 0x1f2937, 0.14, 0, 12);
-    this.strokeRoutePath(base, route.points, 50, 0x8debe0, 0.82);
-    this.strokeRoutePath(inner, route.points, 31, 0xf4fffb, 0.8);
-    this.strokeRoutePath(highlight, route.points, 7, 0xefffff, 0.5, -5, -5);
-    this.strokeRoutePath(highlight, route.points, 4, 0x0694a2, 0.3, 5, 5);
-    this.strokeRoutePath(highlight, route.points, 2, 0x49ddff, 0.32);
+    this.strokeRoutePath(shadow, route.points, 66, 0x1f2937, 0.18, 0, 13);
+    this.strokeRoutePath(shadow, route.points, 58, 0x7c2d12, 0.1, 0, 6);
+    this.strokeRoutePath(base, route.points, 54, 0x43e0c2, 0.34);
+    this.strokeRoutePath(base, route.points, 43, 0xdffdf6, 0.38);
+    this.strokeRoutePath(inner, route.points, 29, 0xefffff, 0.32);
+    this.strokeRoutePath(highlight, route.points, 8, 0xffffff, 0.36, -4, -5);
+    this.strokeRoutePath(highlight, route.points, 5, 0x00a9c8, 0.24, 5, 5);
+    this.strokeRoutePath(highlight, route.points, 2, 0x43e0c2, 0.34);
+    this.drawRouteChannelGlow(route.points);
     this.drawRouteEnergyFlow(route.points);
+  }
+
+  private drawRouteChannelGlow(points: Array<{ x: number; y: number }>): void {
+    for (const point of points) {
+      const world = this.toVisualWorld(point.x, point.y);
+      const radius = this.perspectiveWidthForY(point.y, 24);
+      this.add.ellipse(world.x, world.y + 2, radius * 1.3, radius * 0.54, 0x43e0c2, 0.1).setDepth(2.5);
+      this.add.ellipse(world.x, world.y - 1, radius * 0.82, radius * 0.28, 0xffffff, 0.08).setDepth(3.2);
+    }
   }
 
   private drawRouteEnergyFlow(points: Array<{ x: number; y: number }>): void {
     const energy = this.add.graphics().setDepth(4.5);
-    energy.lineStyle(2, 0x43e0c2, 0.34);
+    energy.lineStyle(2, 0x43e0c2, 0.28);
     points.forEach((point, index) => {
       const world = this.toVisualWorld(point.x, point.y);
       if (index === 0) {
@@ -350,35 +396,55 @@ export class BattleScene extends Phaser.Scene {
     this.add
       .text(this.centerX, this.height - 24, "核心组织防线", {
         fontFamily: "system-ui",
-        fontSize: "13px",
+        fontSize: "12px",
         fontStyle: "900",
         align: "center",
-        color: "#7f1d1d"
+        color: "#fff1f2",
+        stroke: "#7f1d1d",
+        strokeThickness: 3
       })
       .setOrigin(0.5)
       .setDepth(7);
   }
 
   private drawCoreEnergyBase(): void {
-    this.add.ellipse(this.centerX, this.height - 18, this.width * 0.78, 50, 0x7f1d1d, 0.16).setDepth(5);
-    this.add.ellipse(this.centerX, this.height - 30, this.width * 0.66, 36, 0xff9ab1, 0.42).setDepth(5.5);
-    const core = this.add.rectangle(this.centerX, this.height - 24, this.width * 0.62, 34, 0xff7aa2, 0.76).setDepth(6);
-    core.setStrokeStyle(3, 0xffffff, 0.86);
-    this.add.rectangle(this.centerX, this.height - 36, this.width * 0.54, 4, 0xffffff, 0.42).setDepth(6.5);
+    this.add.ellipse(this.centerX, this.height - 18, this.width * 0.86, 58, 0x071123, 0.2).setDepth(5);
+    this.add.ellipse(this.centerX, this.height - 34, this.width * 0.7, 44, 0xff5a6e, 0.2).setDepth(5.3);
+    this.add.ellipse(this.centerX, this.height - 42, this.width * 0.58, 30, 0x43e0c2, 0.2).setDepth(5.45);
+    const core = this.add.ellipse(this.centerX, this.height - 30, this.width * 0.52, 42, 0xff7aa2, 0.34).setDepth(6);
+    core.setStrokeStyle(3, 0xffffff, 0.56);
+    this.add.ellipse(this.centerX, this.height - 42, this.width * 0.38, 10, 0xffffff, 0.28).setDepth(6.5);
+    this.add.ellipse(this.centerX, this.height - 32, this.width * 0.62, 50, 0x22d3ee, 0).setStrokeStyle(2, 0x22d3ee, 0.34).setDepth(6.6);
   }
 
   private drawSlots(): void {
     this.slots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => {
       const world = this.toWorld(slot.x, slot.y);
       const radius = DEPLOY_SLOT_VISUAL_RADIUS;
-      this.add.ellipse(world.x, world.y + 8, radius * 2.8, radius * 1.12, 0x075985, 0.18).setDepth(8);
-      this.add.ellipse(world.x, world.y + 2, radius * 2.35, radius * 0.78, 0xe6fffb, 0.56).setDepth(9);
-      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.18).setDepth(10);
-      view.setStrokeStyle(3, 0x38bdf8, 0.72);
+      const view = this.drawBiologicalPlatform(world.x, world.y, radius);
       this.slotDiscs.set(slot.id, view);
       return { id: slot.id, x: world.x, y: world.y, radius };
     });
     this.updateSlotHighlights();
+  }
+
+  private drawBiologicalPlatform(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
+    this.add.ellipse(x, y + 11, radius * 3.1, radius * 1.05, 0x071123, 0.2).setDepth(8);
+    this.add.ellipse(x, y + 5, radius * 2.55, radius * 0.84, 0xfde7ea, 0.34).setDepth(8.5);
+    this.add.ellipse(x, y + 2, radius * 2.24, radius * 0.68, 0xdffdf6, 0.36).setDepth(9);
+    this.add.ellipse(x, y - 2, radius * 1.72, radius * 0.46, 0xffffff, 0.2).setDepth(9.5);
+    const view = this.add.circle(x, y, radius * 0.86, 0x22d3ee, 0.16).setDepth(10);
+    view.setStrokeStyle(3, 0x8be8ff, 0.68);
+    this.tweens.add({
+      targets: view,
+      alpha: { from: 0.72, to: 0.42 },
+      scale: { from: 1, to: 1.08 },
+      duration: 1350,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+    return view;
   }
 
   private updateSlotHighlights(): void {
@@ -389,14 +455,14 @@ export class BattleScene extends Phaser.Scene {
       }
       const occupied = this.runtime.cells.some((cell) => cell.slotId === slot.id);
       if (occupied) {
-        disc.setFillStyle(0xffffff, 0.12);
-        disc.setStrokeStyle(2, 0x94a3b8, 0.32);
+        disc.setFillStyle(0xffffff, 0.18);
+        disc.setStrokeStyle(2, 0x43e0c2, 0.45);
       } else if (this.selectedCell) {
-        disc.setFillStyle(0x22d3ee, 0.34);
-        disc.setStrokeStyle(4, 0x06b6d4, 0.95);
+        disc.setFillStyle(0x22d3ee, 0.3);
+        disc.setStrokeStyle(4, 0xa7f3d0, 0.95);
       } else {
-        disc.setFillStyle(0x38bdf8, 0.2);
-        disc.setStrokeStyle(3, 0x38bdf8, 0.72);
+        disc.setFillStyle(0x22d3ee, 0.16);
+        disc.setStrokeStyle(3, 0x8be8ff, 0.68);
       }
     }
   }
@@ -425,6 +491,7 @@ export class BattleScene extends Phaser.Scene {
         this.cellViews.set(cell.id, view);
       }
       view.setPosition(world.x, world.y);
+      view.setScale(this.depthScaleForY(cell.y, 0.045));
       view.setDepth(46 + world.y / 18);
     }
   }
@@ -446,6 +513,9 @@ export class BattleScene extends Phaser.Scene {
         this.enemyViews.set(enemy.id, view);
       }
       view.setPosition(world.x, world.y);
+      if (!view.getData("introAnimating")) {
+        view.setScale(this.depthScaleForY(enemy.y, enemy.kind === "mutantVirusCluster" ? 0.055 : 0.04));
+      }
       view.setDepth(32 + world.y / 16);
       this.updateEnemyVisualMotion(view, enemy);
       const hp = view.getByName("hp") as Phaser.GameObjects.Rectangle | null;
@@ -569,7 +639,7 @@ export class BattleScene extends Phaser.Scene {
     const shadow = asset?.shadow ?? { widthRatio: 0.66, heightRatio: 0.18, alpha: 0.18, offsetYRatio: 0.05 };
     const width = (asset?.displayWidth ?? size) * shadow.widthRatio;
     const height = (asset?.displayHeight ?? size) * shadow.heightRatio;
-    const ellipse = this.createSoftShadow(width, height, shadow.alpha);
+    const ellipse = this.createSoftShadow(width, height, shadow.alpha * 1.18);
     ellipse.setPosition(0, size * shadow.offsetYRatio);
     return ellipse;
   }
@@ -619,23 +689,27 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private playBossSpawnFeedback(view: Phaser.GameObjects.Container): void {
+    view.setData("introAnimating", true);
     view.setScale(0.82);
     this.cameras.main.shake(150, 0.004);
     this.tweens.add({
       targets: view,
       scale: 1,
       duration: 420,
-      ease: "Back.easeOut"
+      ease: "Back.easeOut",
+      onComplete: () => view.setData("introAnimating", false)
     });
   }
 
   private playMiniVirusPop(view: Phaser.GameObjects.Container): void {
+    view.setData("introAnimating", true);
     view.setScale(0.58);
     this.tweens.add({
       targets: view,
       scale: 1,
       duration: 300,
-      ease: "Back.easeOut"
+      ease: "Back.easeOut",
+      onComplete: () => view.setData("introAnimating", false)
     });
   }
 
@@ -887,6 +961,10 @@ export class BattleScene extends Phaser.Scene {
       x: this.centerX + (x - 0.5) * this.width * perspective,
       y: y * this.height
     };
+  }
+
+  private depthScaleForY(normalizedY: number, range: number): number {
+    return 1 - range / 2 + normalizedY * range;
   }
 
   private get width(): number {

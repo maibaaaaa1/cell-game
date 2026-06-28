@@ -21,7 +21,7 @@ test("asset config contains first level required sprite and icon paths", () => {
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.fallback, "nasal_mucosa_2_5d");
   assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity >= 0.55);
   assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity <= 0.75);
-  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.enabled, false);
+  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.enabled, true);
   assert.equal(
     ASSET_CONFIG.backgrounds.battle01Nasal.referencePath,
     "/assets/images/backgrounds/reference/bg_battle_01_nasal_concept_reference.png"
@@ -104,7 +104,7 @@ test("configured first level lightweight png files are present in public assets"
   }
 });
 
-test("battle background config is optional and can fall back without requiring a png file", () => {
+test("battle background config enables the final pure nasal background and keeps fallback ready", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const background = ASSET_CONFIG.backgrounds.battle01Nasal;
   const absolutePath = join(root, "public", background.image.path.replace(/^\//, ""));
@@ -113,9 +113,9 @@ test("battle background config is optional and can fall back without requiring a
     : undefined;
 
   assert.equal(background.optional, true);
-  assert.equal(background.enabled, false);
+  assert.equal(background.enabled, true);
   assert.equal(background.fallback, "nasal_mucosa_2_5d");
-  assert.equal(existsSync(absolutePath), false);
+  assert.equal(existsSync(absolutePath), true);
   assert.equal(referencePath ? existsSync(referencePath) : false, true);
 });
 
@@ -142,11 +142,14 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("createSoftShadow"));
   assert.ok(source.includes("drawRouteChannel"));
   assert.ok(source.includes("perspectiveWidthForY"));
+  assert.ok(source.includes("drawRouteChannelGlow"));
+  assert.ok(source.includes("drawBiologicalPlatform"));
   assert.ok(source.includes("drawTissueTexture"));
   assert.ok(source.includes("drawMucosaWalls"));
   assert.ok(source.includes("drawAirflowLines"));
   assert.ok(source.includes("drawRouteEnergyFlow"));
   assert.ok(source.includes("drawCoreEnergyBase"));
+  assert.ok(source.includes("depthScaleForY"));
   assert.ok(source.includes("toVisualWorld"));
   assert.ok(source.includes("createFastVirusTrail"));
   assert.ok(source.includes("playBossSpawnFeedback"));
