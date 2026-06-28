@@ -43,6 +43,7 @@ export function Codex({ save, onBack }: CodexProps) {
                 >
                   {unlocked && entry.icon && (
                     <img
+                      className="codex-avatar-image"
                       src={entry.icon}
                       alt=""
                       draggable={false}

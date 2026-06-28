@@ -191,44 +191,61 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawBattlefield(): void {
-    this.cameras.main.setBackgroundColor(0xf0fdfa);
-    this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xf8fbff, 1);
+    this.cameras.main.setBackgroundColor(0xfff8ef);
+    this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xfffbf4, 1).setDepth(0);
+    this.add.ellipse(this.centerX, this.height * 0.18, this.width * 0.92, this.height * 0.34, 0xdff7ff, 0.82).setDepth(0);
+    this.add.ellipse(this.centerX, this.height * 0.58, this.width * 1.18, this.height * 0.62, 0xf0fffb, 0.78).setDepth(0);
+    this.add.rectangle(this.centerX, this.centerY, this.width - 22, this.height - 18, 0xffffff, 0.12).setStrokeStyle(2, 0x8be8ff, 0.24).setDepth(0);
     this.drawRoutes();
     this.drawCore();
     this.drawSlots();
   }
 
   private drawRoutes(): void {
-    const graphics = this.add.graphics();
     for (const routeId of FIRST_LEVEL_ROUTE_IDS) {
-      const route = ROUTE_CONFIG[routeId];
-      graphics.lineStyle(34, 0xccfbf1, 1);
-      route.points.forEach((point, index) => {
-        const world = this.toWorld(point.x, point.y);
-        if (index === 0) {
-          graphics.beginPath();
-          graphics.moveTo(world.x, world.y);
-          return;
-        }
-        graphics.lineTo(world.x, world.y);
-      });
-      graphics.strokePath();
-      graphics.lineStyle(4, 0x14b8a6, 0.42);
-      route.points.forEach((point, index) => {
-        const world = this.toWorld(point.x, point.y);
-        if (index === 0) {
-          graphics.beginPath();
-          graphics.moveTo(world.x, world.y);
-          return;
-        }
-        graphics.lineTo(world.x, world.y);
-      });
-      graphics.strokePath();
+      this.drawRouteChannel(routeId);
     }
   }
 
+  private drawRouteChannel(routeId: string): void {
+    const route = ROUTE_CONFIG[routeId];
+    const shadow = this.add.graphics().setDepth(1);
+    const base = this.add.graphics().setDepth(2);
+    const inner = this.add.graphics().setDepth(3);
+    const highlight = this.add.graphics().setDepth(4);
+
+    this.strokeRoutePath(shadow, route.points, 52, 0x6b7280, 0.16, 0, 9);
+    this.strokeRoutePath(base, route.points, 48, 0xb6f4ea, 0.88);
+    this.strokeRoutePath(inner, route.points, 28, 0xeefffb, 0.78);
+    this.strokeRoutePath(highlight, route.points, 5, 0x49ddff, 0.48, -4, -4);
+    this.strokeRoutePath(highlight, route.points, 3, 0x0694a2, 0.28, 5, 5);
+  }
+
+  private strokeRoutePath(
+    graphics: Phaser.GameObjects.Graphics,
+    points: Array<{ x: number; y: number }>,
+    width: number,
+    color: number,
+    alpha: number,
+    offsetX = 0,
+    offsetY = 0
+  ): void {
+    graphics.lineStyle(width, color, alpha);
+    points.forEach((point, index) => {
+      const world = this.toWorld(point.x, point.y);
+      if (index === 0) {
+        graphics.beginPath();
+        graphics.moveTo(world.x + offsetX, world.y + offsetY);
+        return;
+      }
+      graphics.lineTo(world.x + offsetX, world.y + offsetY);
+    });
+    graphics.strokePath();
+  }
+
   private drawCore(): void {
-    const core = this.add.rectangle(this.centerX, this.height - 24, this.width * 0.62, 34, 0xff7aa2, 0.9);
+    this.add.ellipse(this.centerX, this.height - 22, this.width * 0.74, 42, 0x7f1d1d, 0.14).setDepth(5);
+    const core = this.add.rectangle(this.centerX, this.height - 24, this.width * 0.62, 34, 0xff7aa2, 0.9).setDepth(6);
     core.setStrokeStyle(3, 0xffffff, 0.9);
     this.add
       .text(this.centerX, this.height - 24, "核心组织防线", {
@@ -238,14 +255,16 @@ export class BattleScene extends Phaser.Scene {
         align: "center",
         color: "#7f1d1d"
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(7);
   }
 
   private drawSlots(): void {
     this.slots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => {
       const world = this.toWorld(slot.x, slot.y);
       const radius = DEPLOY_SLOT_VISUAL_RADIUS;
-      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.2);
+      this.add.ellipse(world.x, world.y + 5, radius * 2.35, radius * 1.1, 0x075985, 0.16).setDepth(8);
+      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.2).setDepth(9);
       view.setStrokeStyle(3, 0x38bdf8, 0.72);
       this.slotDiscs.set(slot.id, view);
       return { id: slot.id, x: world.x, y: world.y, radius };
@@ -297,6 +316,7 @@ export class BattleScene extends Phaser.Scene {
         this.cellViews.set(cell.id, view);
       }
       view.setPosition(world.x, world.y);
+      view.setDepth(46 + world.y / 18);
     }
   }
 
@@ -316,10 +336,17 @@ export class BattleScene extends Phaser.Scene {
         view = this.createEnemyView(enemy, world.x, world.y);
         this.enemyViews.set(enemy.id, view);
       }
-      view.setPosition(world.x, world.y);
+      const floatOffset = enemy.kind === "mutantVirusCluster" ? Math.sin(this.time.now / 360) * 1.6 : Math.sin(this.time.now / 240 + enemy.progress * 9) * 2.2;
+      view.setPosition(world.x, world.y + floatOffset);
+      view.setDepth(32 + world.y / 16);
+      this.updateEnemyVisualMotion(view, enemy);
       const hp = view.getByName("hp") as Phaser.GameObjects.Rectangle | null;
       if (hp) {
         hp.scaleX = Math.max(0, enemy.health / enemy.maxHealth);
+      }
+      if (enemy.kind === "mutantVirusCluster" && enemy.bossSplitTriggered && !view.getData("splitFlashPlayed")) {
+        view.setData("splitFlashPlayed", true);
+        this.playBossSplitFlash(world.x, world.y);
       }
     }
   }
@@ -339,6 +366,7 @@ export class BattleScene extends Phaser.Scene {
       if (!view) {
         view = this.add.circle(world.x, world.y, 5, 0x22d3ee, 1);
         view.setStrokeStyle(2, 0xffffff, 0.9);
+        view.setDepth(58);
         this.projectileViews.set(projectile.id, view);
       }
       view.setPosition(world.x, world.y);
@@ -347,45 +375,161 @@ export class BattleScene extends Phaser.Scene {
 
   private createCellView(cell: RuntimeCell, x: number, y: number): Phaser.GameObjects.Container {
     const asset = getCellVisualAsset(cell.kind);
+    const size = asset?.displaySize ?? (cell.kind === "macrophage" ? 82 : 78);
+    const shadow = this.createSoftShadow(size * 0.68, size * 0.22, 0.2);
+    shadow.setPosition(0, size * 0.3);
+    const glow = this.add.circle(0, 0, size * 0.4, cell.kind === "macrophage" ? 0xffb454 : 0x8b5cf6, 0.12);
     const visual = asset && this.textures.exists(asset.sprite.key)
       ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(asset.displaySize, asset.displaySize)
       : this.createCellFallbackShape(cell.kind, asset);
+    visual.setName("visual");
     const label = this.add
-      .text(0, 18, cell.kind === "macrophage" ? "巨" : "NK", {
+      .text(0, size * 0.43, cell.kind === "macrophage" ? "巨噬" : "NK", {
         fontFamily: "system-ui",
         fontSize: "11px",
         fontStyle: "900",
-        color: "#ffffff"
+        color: "#ffffff",
+        backgroundColor: "rgba(7,17,35,0.58)",
+        padding: { left: 5, right: 5, top: 2, bottom: 2 }
       })
       .setOrigin(0.5);
-    return this.add.container(x, y, [visual, label]);
+    return this.add.container(x, y, [shadow, glow, visual, label]);
   }
 
   private createEnemyView(enemy: RuntimeEnemy, x: number, y: number): Phaser.GameObjects.Container {
     const asset = getEnemyOrBossVisualAsset(enemy.kind);
-    const size = asset?.displaySize ?? (enemy.kind === "mutantVirusCluster" ? 86 : enemy.kind === "bacteria" ? 40 : enemy.kind === "miniVirus" ? 24 : 32);
+    const size = asset?.displaySize ?? (enemy.kind === "mutantVirusCluster" ? 132 : enemy.kind === "bacteria" ? 64 : enemy.kind === "miniVirus" ? 36 : 48);
     const radius = size / 2;
+    const children: Phaser.GameObjects.GameObject[] = [];
+    const shadow = this.createSoftShadow(
+      enemy.kind === "mutantVirusCluster" ? size * 0.74 : enemy.kind === "bacteria" ? size * 0.72 : size * 0.58,
+      enemy.kind === "mutantVirusCluster" ? size * 0.22 : size * 0.18,
+      enemy.kind === "mutantVirusCluster" ? 0.28 : 0.18
+    );
+    shadow.setPosition(0, radius * 0.48);
+    children.push(shadow);
+    if (enemy.kind === "fastVirus") {
+      children.push(this.createFastVirusTrail(size));
+    }
+    if (enemy.kind === "mutantVirusCluster") {
+      const aura = this.add.circle(0, 0, radius * 0.78, 0xff3d2e, 0.14);
+      aura.setStrokeStyle(4, 0xff9f1c, 0.28);
+      children.push(aura);
+    }
     const visual = asset && this.textures.exists(asset.sprite.key)
-      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(size, size)
+      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(enemy.kind === "fastVirus" ? size * 1.14 : size, enemy.kind === "fastVirus" ? size * 0.92 : size)
       : this.createEnemyFallbackShape(enemy.kind, asset, radius);
-    const hpBack = this.add.rectangle(0, -radius - 9, radius * 2, 5, 0xffffff, 0.92);
-    const hp = this.add.rectangle(-radius, -radius - 9, radius * 2, 5, 0x22c55e, 1).setOrigin(0, 0.5).setName("hp");
-    const label = this.add
-      .text(0, 0, this.enemyLabel(enemy.kind), {
-        fontFamily: "system-ui",
-        fontSize: "11px",
-        fontStyle: "900",
-        color: "#ffffff"
-      })
-      .setOrigin(0.5);
-    return this.add.container(x, y, [visual, label, hpBack, hp]);
+    visual.setName("visual");
+    if (enemy.kind === "fastVirus") {
+      visual.setRotation(0.16);
+    }
+    children.push(visual);
+
+    const hpWidth = enemy.kind === "mutantVirusCluster" ? radius * 1.65 : radius * 1.45;
+    const hpHeight = enemy.kind === "mutantVirusCluster" ? 8 : 5;
+    const hpBack = this.add.rectangle(0, -radius - 11, hpWidth, hpHeight, 0xffffff, 0.94);
+    const hp = this.add.rectangle(-hpWidth / 2, -radius - 11, hpWidth, hpHeight, enemy.kind === "mutantVirusCluster" ? 0xef4444 : 0x22c55e, 1).setOrigin(0, 0.5).setName("hp");
+    hpBack.setStrokeStyle(1, 0x071123, 0.18);
+    children.push(hpBack, hp);
+
+    if (enemy.kind === "mutantVirusCluster") {
+      const label = this.add
+        .text(0, -radius - 25, "BOSS", {
+          fontFamily: "system-ui",
+          fontSize: "13px",
+          fontStyle: "900",
+          color: "#7f1d1d",
+          stroke: "#ffffff",
+          strokeThickness: 4
+        })
+        .setOrigin(0.5);
+      children.push(label);
+    }
+
+    const container = this.add.container(x, y, children);
+    if (enemy.kind === "mutantVirusCluster") {
+      this.playBossSpawnFeedback(container);
+    }
+    if (enemy.kind === "miniVirus") {
+      this.playMiniVirusPop(container);
+    }
+    return container;
+  }
+
+  private createSoftShadow(width: number, height: number, alpha: number): Phaser.GameObjects.Ellipse {
+    return this.add.ellipse(0, 0, width, height, 0x071123, alpha);
+  }
+
+  private createFastVirusTrail(size: number): Phaser.GameObjects.Ellipse {
+    const trail = this.add.ellipse(-size * 0.34, size * 0.1, size * 0.74, size * 0.22, 0xff7a1a, 0.24);
+    trail.setName("fast-virus-trail");
+    return trail;
+  }
+
+  private updateEnemyVisualMotion(view: Phaser.GameObjects.Container, enemy: RuntimeEnemy): void {
+    const visual = view.getByName("visual") as Phaser.GameObjects.Image | Phaser.GameObjects.Shape | null;
+    if (!visual) {
+      return;
+    }
+    if (enemy.kind === "fastVirus") {
+      visual.setRotation(0.18 + Math.sin(this.time.now / 130) * 0.08);
+      view.setScale(1 + Math.sin(this.time.now / 120) * 0.025, 1);
+      return;
+    }
+    if (enemy.kind === "bacteria") {
+      visual.setRotation(Math.sin(this.time.now / 520 + enemy.progress * 8) * 0.035);
+      return;
+    }
+    if (enemy.kind === "mutantVirusCluster") {
+      const pulse = 1 + Math.sin(this.time.now / 420) * 0.035;
+      visual.setScale(pulse);
+    }
+  }
+
+  private playBossSpawnFeedback(view: Phaser.GameObjects.Container): void {
+    view.setScale(0.82);
+    this.cameras.main.shake(150, 0.004);
+    this.tweens.add({
+      targets: view,
+      scale: 1,
+      duration: 420,
+      ease: "Back.easeOut"
+    });
+  }
+
+  private playMiniVirusPop(view: Phaser.GameObjects.Container): void {
+    view.setScale(0.58);
+    this.tweens.add({
+      targets: view,
+      scale: 1,
+      duration: 300,
+      ease: "Back.easeOut"
+    });
+  }
+
+  private playBossSplitFlash(x: number, y: number): void {
+    const flash = this.add.circle(x, y, 44, 0xff3d2e, 0.34).setDepth(70);
+    flash.setStrokeStyle(5, 0xffb454, 0.55);
+    this.effectViews.add(flash);
+    this.tweens.add({
+      targets: flash,
+      scale: 2.6,
+      alpha: 0,
+      duration: 520,
+      ease: "Cubic.easeOut",
+      onComplete: () => {
+        flash.destroy();
+        this.effectViews.delete(flash);
+      }
+    });
   }
 
   private createCellFallbackShape(kind: CellKind, asset?: VisualAssetConfig): Phaser.GameObjects.Shape {
     const color = asset?.fallbackColor ?? (kind === "macrophage" ? 0xff9f1c : 0x7c3aed);
+    const radius = (asset?.displaySize ?? (kind === "macrophage" ? 82 : 78)) * 0.38;
     const shape = kind === "macrophage"
-      ? this.add.circle(0, 0, 24, color, 1)
-      : this.add.star(0, 0, 7, 10, 25, color, 1);
+      ? this.add.circle(0, 0, radius, color, 1)
+      : this.add.star(0, 0, 7, radius * 0.42, radius, color, 1);
     shape.setStrokeStyle(3, 0xffffff, 0.95);
     return shape;
   }
@@ -603,22 +747,6 @@ export class BattleScene extends Phaser.Scene {
       x: x * this.width,
       y: y * this.height
     };
-  }
-
-  private enemyLabel(kind: EnemyKind): string {
-    if (kind === "bacteria") {
-      return "菌";
-    }
-    if (kind === "fastVirus") {
-      return "快";
-    }
-    if (kind === "miniVirus") {
-      return "小";
-    }
-    if (kind === "mutantVirusCluster") {
-      return "Boss";
-    }
-    return "毒";
   }
 
   private get width(): number {

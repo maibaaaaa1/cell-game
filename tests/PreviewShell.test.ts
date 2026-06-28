@@ -111,6 +111,19 @@ test("battle modals use v0.1 result copy and product shell classes", () => {
   assert.ok(styles.includes(".pause-panel"));
 });
 
+test("bottom cards and codex avatars crop 3D portraits without stretching", () => {
+  const gameShell = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
+  const codex = readFileSync(new URL("../src/components/Codex.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.ok(gameShell.includes("cell-card-portrait"));
+  assert.ok(codex.includes("codex-avatar-image"));
+  assert.match(styles, /\.cell-card-portrait\s*{[^}]*border-radius: 999px;/s);
+  assert.match(styles, /\.cell-card-icon img\s*{[^}]*object-fit: cover;/s);
+  assert.match(styles, /\.codex-avatar img\s*{[^}]*object-fit: contain;/s);
+  assert.match(styles, /\.codex-avatar-image\s*{[^}]*transform:/s);
+});
+
 test("stage 2.13 skin does not change frozen first level balance", () => {
   const balance = readFileSync(new URL("../src/configs/balanceConfig.ts", import.meta.url), "utf8");
   const enemies = readFileSync(new URL("../src/configs/enemyConfig.ts", import.meta.url), "utf8");

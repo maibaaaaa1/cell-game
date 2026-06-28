@@ -178,7 +178,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                   }}
                   onClick={() => sendBattleCommand({ type: "select-cell", cell: cell.kind })}
                 >
-                  <span className="cell-card-icon" style={{ backgroundColor: cell.accent }}>
+                  <span className="cell-card-icon cell-card-portrait" style={{ backgroundColor: cell.accent }}>
                     {cell.icon && (
                       <img
                         src={cell.icon}

@@ -23,42 +23,42 @@ export const ASSET_CONFIG = {
       sprite: { key: "cell_macrophage_256", path: "/assets/images/cells/sprite/cell_macrophage_256.png" },
       icon: { key: "cell_macrophage_icon_256", path: "/assets/images/cells/icon/cell_macrophage_256.png" },
       fallbackColor: 0xff9f1c,
-      displaySize: 52
+      displaySize: 82
     },
     nk: {
       sprite: { key: "cell_nk_256", path: "/assets/images/cells/sprite/cell_nk_256.png" },
       icon: { key: "cell_nk_icon_256", path: "/assets/images/cells/icon/cell_nk_256.png" },
       fallbackColor: 0x7c3aed,
-      displaySize: 50
+      displaySize: 78
     }
   },
   enemies: {
     normalVirus: {
       sprite: { key: "enemy_normal_virus_256", path: "/assets/images/enemies/sprite/enemy_normal_virus_256.png" },
       fallbackColor: 0xff6b3d,
-      displaySize: 32
+      displaySize: 48
     },
     fastVirus: {
       sprite: { key: "enemy_fast_virus_256", path: "/assets/images/enemies/sprite/enemy_fast_virus_256.png" },
       fallbackColor: 0xff3d2e,
-      displaySize: 30
+      displaySize: 50
     },
     bacteria: {
       sprite: { key: "enemy_bacteria_256", path: "/assets/images/enemies/sprite/enemy_bacteria_256.png" },
       fallbackColor: 0xb5d94a,
-      displaySize: 40
+      displaySize: 64
     },
     miniVirus: {
       sprite: { key: "enemy_mini_virus_256", path: "/assets/images/enemies/sprite/enemy_mini_virus_256.png" },
       fallbackColor: 0xff735c,
-      displaySize: 24
+      displaySize: 36
     }
   },
   bosses: {
     mutantVirusCluster: {
       sprite: { key: "boss_mutant_virus_cluster_256", path: "/assets/images/bosses/sprite/boss_mutant_virus_cluster_256.png" },
       fallbackColor: 0xff5a2a,
-      displaySize: 86
+      displaySize: 132
     }
   },
   audio: {

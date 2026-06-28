@@ -31,18 +31,26 @@ test("asset config contains first level required sprite and icon paths", () => {
 test("first level visual assets expose fallback colors and stable display sizes", () => {
   assert.equal(getCellVisualAsset("macrophage")?.fallbackColor, 0xff9f1c);
   assert.equal(getCellVisualAsset("nk")?.fallbackColor, 0x7c3aed);
-  assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 0) <= 56);
-  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 0) <= 56);
+  assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 0) >= 72);
+  assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 99) <= 88);
+  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 0) >= 70);
+  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 99) <= 84);
 
   assert.equal(getEnemyVisualAsset("normalVirus")?.fallbackColor, 0xff6b3d);
   assert.equal(getEnemyVisualAsset("fastVirus")?.fallbackColor, 0xff3d2e);
   assert.equal(getEnemyVisualAsset("bacteria")?.fallbackColor, 0xb5d94a);
   assert.equal(getEnemyVisualAsset("miniVirus")?.fallbackColor, 0xff735c);
-  assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 99) <= 26);
+  assert.ok((getEnemyVisualAsset("normalVirus")?.displaySize ?? 0) >= 42);
+  assert.ok((getEnemyVisualAsset("fastVirus")?.displaySize ?? 0) >= 44);
+  assert.ok((getEnemyVisualAsset("bacteria")?.displaySize ?? 0) >= 56);
+  assert.ok((getEnemyVisualAsset("bacteria")?.displaySize ?? 0) > (getEnemyVisualAsset("normalVirus")?.displaySize ?? 99));
+  assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 0) >= 32);
+  assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 99) <= 38);
 
   assert.equal(getBossVisualAsset("mutantVirusCluster")?.fallbackColor, 0xff5a2a);
-  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) >= 70);
-  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 99) <= 96);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) >= 118);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 99) <= 150);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) > (getEnemyVisualAsset("bacteria")?.displaySize ?? 0) * 1.8);
 });
 
 test("configured first level lightweight png files are present in public assets", () => {
@@ -72,6 +80,20 @@ test("battle scene loads optional sprites and keeps fallback rendering guarded",
   assert.ok(source.includes("this.textures.exists"));
   assert.ok(source.includes("createCellFallbackShape"));
   assert.ok(source.includes("createEnemyFallbackShape"));
+});
+
+test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation cues", () => {
+  const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
+
+  assert.ok(source.includes("setDisplaySize(asset.displaySize, asset.displaySize)"));
+  assert.ok(source.includes("createSoftShadow"));
+  assert.ok(source.includes("drawRouteChannel"));
+  assert.ok(source.includes("createFastVirusTrail"));
+  assert.ok(source.includes("playBossSpawnFeedback"));
+  assert.ok(source.includes("playMiniVirusPop"));
+  assert.ok(source.includes("playBossSplitFlash"));
+  assert.ok(!source.includes("cell.range ="));
+  assert.ok(!source.includes("enemy.speed ="));
 });
 
 test("cell cards and codex can show icons without breaking fallback dots", () => {
