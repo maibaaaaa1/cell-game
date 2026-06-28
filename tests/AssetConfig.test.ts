@@ -16,6 +16,11 @@ test("asset config contains first level required sprite and icon paths", () => {
   assert.equal(ASSET_CONFIG.enemies.bacteria.sprite.path, "/assets/images/enemies/sprite/enemy_bacteria_256.png");
   assert.equal(ASSET_CONFIG.enemies.miniVirus.sprite.path, "/assets/images/enemies/sprite/enemy_mini_virus_256.png");
   assert.equal(ASSET_CONFIG.bosses.mutantVirusCluster.sprite.path, "/assets/images/bosses/sprite/boss_mutant_virus_cluster_256.png");
+  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.image.key, "bg_battle_01_nasal");
+  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.image.path, "/assets/images/backgrounds/bg_battle_01_nasal.png");
+  assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.fallback, "nasal_mucosa_2_5d");
+  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity >= 0.55);
+  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity <= 0.75);
 
   assert.deepEqual(FIRST_LEVEL_REQUIRED_ASSET_KEYS, [
     "cell_macrophage_256",
@@ -94,12 +99,25 @@ test("configured first level lightweight png files are present in public assets"
   }
 });
 
+test("battle background config is optional and can fall back without requiring a png file", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const background = ASSET_CONFIG.backgrounds.battle01Nasal;
+  const absolutePath = join(root, "public", background.image.path.replace(/^\//, ""));
+
+  assert.equal(background.optional, true);
+  assert.equal(background.fallback, "nasal_mucosa_2_5d");
+  assert.equal(typeof existsSync(absolutePath), "boolean");
+});
+
 test("battle scene loads optional sprites and keeps fallback rendering guarded", () => {
   const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
 
   assert.ok(source.includes("ASSET_CONFIG"));
   assert.ok(source.includes("this.load.image"));
+  assert.ok(source.includes("ASSET_CONFIG.backgrounds.battle01Nasal"));
   assert.ok(source.includes("this.textures.exists"));
+  assert.ok(source.includes("drawBackgroundImage"));
+  assert.ok(source.includes("drawNasalMucosaFallback"));
   assert.ok(source.includes("createCellFallbackShape"));
   assert.ok(source.includes("createEnemyFallbackShape"));
 });
@@ -113,6 +131,10 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("drawRouteChannel"));
   assert.ok(source.includes("perspectiveWidthForY"));
   assert.ok(source.includes("drawTissueTexture"));
+  assert.ok(source.includes("drawMucosaWalls"));
+  assert.ok(source.includes("drawAirflowLines"));
+  assert.ok(source.includes("drawRouteEnergyFlow"));
+  assert.ok(source.includes("drawCoreEnergyBase"));
   assert.ok(source.includes("toVisualWorld"));
   assert.ok(source.includes("createFastVirusTrail"));
   assert.ok(source.includes("playBossSpawnFeedback"));

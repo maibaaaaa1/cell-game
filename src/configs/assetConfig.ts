@@ -29,6 +29,13 @@ export interface VisualAssetConfig {
   };
 }
 
+export interface BackgroundAssetConfig {
+  image: ImageAssetRef;
+  fallback: "nasal_mucosa_2_5d";
+  opacity: number;
+  optional: boolean;
+}
+
 export const ASSET_CONFIG = {
   atlas: {},
   sprites: {
@@ -93,6 +100,14 @@ export const ASSET_CONFIG = {
       displaySize: 116,
       originY: 0.8,
       shadow: { widthRatio: 0.92, heightRatio: 0.24, alpha: 0.28, offsetYRatio: 0.04 }
+    }
+  },
+  backgrounds: {
+    battle01Nasal: {
+      image: { key: "bg_battle_01_nasal", path: "/assets/images/backgrounds/bg_battle_01_nasal.png" },
+      fallback: "nasal_mucosa_2_5d",
+      opacity: 0.62,
+      optional: true
     }
   },
   audio: {
