@@ -1,4 +1,6 @@
 import type { BattleSystem } from "../types/battle.ts";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
+import type { CellKind } from "../types/game.ts";
 import { pushRuntimeEffect, type BattleRuntimeState } from "./BattleRuntimeState.ts";
 
 export class DamageSystem implements BattleSystem {
@@ -9,7 +11,7 @@ export class DamageSystem implements BattleSystem {
     this.runtime = runtime;
   }
 
-  apply(enemyId: string, amount: number): boolean {
+  apply(enemyId: string, amount: number, sourceCellKind?: CellKind): boolean {
     if (!this.runtime) {
       return false;
     }
@@ -19,7 +21,8 @@ export class DamageSystem implements BattleSystem {
       return false;
     }
 
-    enemy.health = Math.max(0, enemy.health - amount);
+    const finalDamage = this.damageFor(enemy.kind, amount, sourceCellKind);
+    enemy.health = Math.max(0, enemy.health - finalDamage);
     if (enemy.health > 0) {
       return false;
     }
@@ -40,4 +43,13 @@ export class DamageSystem implements BattleSystem {
   }
 
   cleanup(): void {}
+
+  private damageFor(enemyKind: string, amount: number, sourceCellKind?: CellKind): number {
+    if (enemyKind !== "mutantVirusCluster" || !sourceCellKind) {
+      return amount;
+    }
+
+    const multipliers = BATTLE_BALANCE_CONFIG.combat.firstLevelBossDamageTaken;
+    return amount * (multipliers[sourceCellKind as keyof typeof multipliers] ?? 1);
+  }
 }

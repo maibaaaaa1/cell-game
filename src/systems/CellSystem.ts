@@ -1,4 +1,5 @@
 import { CELL_CONFIG } from "../configs/cellConfig.ts";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { ROUTE_CONFIG } from "../configs/routeConfig.ts";
 import type { BattleSystem } from "../types/battle.ts";
 import type { CellKind } from "../types/game.ts";
@@ -48,6 +49,7 @@ export class CellSystem implements BattleSystem {
       return null;
     }
 
+    const attackRate = this.attackRateFor(kind, config.attackRate);
     const cell: RuntimeCell = {
       id: `cell-${this.runtime.nextCellId}`,
       kind,
@@ -56,8 +58,8 @@ export class CellSystem implements BattleSystem {
       x: slot.x,
       y: slot.y,
       range: config.range,
-      attack: config.attack,
-      attackCooldownMs: 1000 / Math.max(0.1, config.attackRate),
+      attack: this.attackFor(kind, config.attack),
+      attackCooldownMs: 1000 / Math.max(0.1, attackRate),
       lastAttackAt: 0
     };
     this.runtime.nextCellId += 1;
@@ -92,5 +94,19 @@ export class CellSystem implements BattleSystem {
 
   private findSlot(slotId: string) {
     return ROUTE_CONFIG.noseLeft.cellSlots.find((slot) => slot.id === slotId);
+  }
+
+  private attackFor(kind: CellKind, baseAttack: number): number {
+    if (kind !== "nk") {
+      return baseAttack;
+    }
+    return baseAttack * BATTLE_BALANCE_CONFIG.combat.firstLevelCellTuning.nkDamageMultiplier;
+  }
+
+  private attackRateFor(kind: CellKind, baseAttackRate: number): number {
+    if (kind !== "nk") {
+      return baseAttackRate;
+    }
+    return baseAttackRate * BATTLE_BALANCE_CONFIG.combat.firstLevelCellTuning.nkAttackRateMultiplier;
   }
 }

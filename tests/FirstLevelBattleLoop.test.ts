@@ -38,18 +38,18 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(routes.length, 2);
   assert.equal(routes[0].cellSlots.length, 7);
   assert.equal(waves.length, 9);
-  assert.equal(BATTLE_BALANCE_CONFIG.resources.initialAtp, 160);
-  assert.equal(BATTLE_BALANCE_CONFIG.resources.atpPerSecond, 6);
-  assert.equal(BATTLE_BALANCE_CONFIG.resources.maxAtp, 300);
+  assert.equal(BATTLE_BALANCE_CONFIG.resources.initialAtp, 120);
+  assert.ok(BATTLE_BALANCE_CONFIG.resources.atpPerSecond <= 3);
+  assert.ok(BATTLE_BALANCE_CONFIG.resources.maxAtp <= 240);
   assert.equal(BATTLE_BALANCE_CONFIG.resources.initialTissueIntegrity, 100);
   assert.equal(CELL_CONFIG.macrophage.cost, 50);
   assert.equal(CELL_CONFIG.nk.cost, 70);
   assert.equal(ENEMY_CONFIG.normalVirus.health, 60);
   assert.equal(ENEMY_CONFIG.fastVirus.speed, 1.45);
-  assert.equal(ENEMY_CONFIG.mutantVirusCluster.health, 1600);
-  assert.equal(ENEMY_CONFIG.mutantVirusCluster.speed, 0.3);
-  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.health, 1600);
-  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.speed, 0.3);
+  assert.equal(ENEMY_CONFIG.mutantVirusCluster.health, 2200);
+  assert.equal(ENEMY_CONFIG.mutantVirusCluster.speed, 0.28);
+  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.health, 2200);
+  assert.equal(ENEMY_CONFIGS.mutantVirusCluster.speed, 0.28);
 });
 
 test("first level wave table uses PvZ-style grouped pacing", () => {
@@ -115,13 +115,25 @@ test("cell deployment spends ATP and rejects unaffordable deployments", () => {
 
   const macrophage = cells.deploy("macrophage", "slot-1");
   assert.ok(macrophage);
-  assert.equal(runtime.atp, 110);
+  assert.equal(runtime.atp, 70);
 
   runtime.atp = 20;
   const nk = cells.deploy("nk", "slot-2");
   assert.equal(nk, null);
   assert.equal(runtime.atp, 20);
   assert.match(runtime.message, /ATP不足/);
+});
+
+test("first level NK tuning lowers damage and attack speed from the old preview values", () => {
+  const runtime = createBattleRuntimeState({ atp: 1000 });
+  const atp = new ATPSystem(runtime);
+  const cells = new CellSystem(runtime, atp);
+
+  const nk = cells.deploy("nk", "slot-2");
+
+  assert.ok(nk);
+  assert.ok(nk.attack < 38);
+  assert.ok(nk.attackCooldownMs > 800);
 });
 
 test("first level action bar exposes only macrophage and NK", () => {
@@ -190,7 +202,17 @@ test("damage kills enemies and awards ATP", () => {
 
   damage.apply(enemy.id, 25);
   assert.equal(runtime.enemies.length, 0);
-  assert.equal(runtime.atp, 7);
+  assert.equal(runtime.atp, 3);
+});
+
+test("first level kill reward overrides reduce ATP snowballing", () => {
+  const runtime = createBattleRuntimeState({ atp: 0 });
+  const enemies = new EnemySystem(runtime);
+
+  assert.equal(enemies.spawn("normalVirus", "left", 0).reward, 3);
+  assert.equal(enemies.spawn("fastVirus", "left", 0).reward, 4);
+  assert.equal(enemies.spawn("miniVirus", "left", 0).reward, 2);
+  assert.equal(enemies.spawn("bacteria", "left", 0).reward, 5);
 });
 
 test("enemy reaching route end damages tissue and is removed", () => {
@@ -212,9 +234,9 @@ test("boss splits once at half health and cleanup resets battle state", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0);
-  assert.equal(bossEnemy.maxHealth, 1600);
-  assert.equal(bossEnemy.speed, 0.3);
-  damage.apply(bossEnemy.id, 810);
+  assert.equal(bossEnemy.maxHealth, 2200);
+  assert.equal(bossEnemy.speed, 0.28);
+  damage.apply(bossEnemy.id, 1110);
   boss.update();
   assert.equal(runtime.enemies.filter((enemy) => enemy.kind === "miniVirus").length, 6);
 
@@ -231,8 +253,21 @@ test("boss splits once at half health and cleanup resets battle state", () => {
   assert.equal(runtime.cells.length, 0);
   assert.equal(runtime.projectiles.length, 0);
   assert.equal(runtime.effects.length, 0);
-  assert.equal(runtime.atp, 160);
+  assert.equal(runtime.atp, 120);
   assert.equal(runtime.tissueIntegrity, 100);
+});
+
+test("boss takes reduced damage from first level NK and macrophage attacks", () => {
+  const runtime = createBattleRuntimeState();
+  const enemies = new EnemySystem(runtime);
+  const damage = new DamageSystem(runtime);
+
+  const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0);
+  damage.apply(bossEnemy.id, 100, "nk");
+  assert.equal(bossEnemy.health, 2135);
+
+  damage.apply(bossEnemy.id, 100, "macrophage");
+  assert.equal(bossEnemy.health, 2050);
 });
 
 test("boss split mini viruses continue moving downward on both routes", () => {
@@ -242,7 +277,7 @@ test("boss split mini viruses continue moving downward on both routes", () => {
   const boss = new BossSystem(runtime, enemies);
 
   const bossEnemy = enemies.spawn("mutantVirusCluster", "left", 0.5);
-  damage.apply(bossEnemy.id, 810);
+  damage.apply(bossEnemy.id, 1110);
   boss.update();
 
   const miniViruses = runtime.enemies.filter((enemy) => enemy.kind === "miniVirus");
@@ -335,7 +370,7 @@ test("boss wave has presence and cannot resolve victory instantly", () => {
   waves.startNextWave();
   const bossEnemy = runtime.enemies.find((enemy) => enemy.kind === "mutantVirusCluster");
   assert.ok(bossEnemy);
-  damage.apply(bossEnemy.id, 2000);
+  damage.apply(bossEnemy.id, 2300);
   assert.equal(runtime.defeatedBoss, true);
 
   waves.update(0, 29000);
@@ -361,7 +396,7 @@ test("fully taught first level remains winnable after pacing calibration", () =>
     assert.ok(cells.deploy(index % 3 === 0 ? "macrophage" : "nk", slot.id));
   });
 
-  for (let time = 0; time <= 180000 && runtime.status === "playing"; time += 250) {
+  for (let time = 0; time <= 240000 && runtime.status === "playing"; time += 250) {
     atp.update(time, 250);
     waves.update(time, 250);
     enemies.update(time, 250);
@@ -372,4 +407,48 @@ test("fully taught first level remains winnable after pacing calibration", () =>
 
   assert.equal(runtime.status, "victory");
   assert.ok(runtime.tissueIntegrity > 0);
+});
+
+test("first level remains winnable with reduced ATP economy and staged deployment", () => {
+  const runtime = createBattleRuntimeState();
+  const enemies = new EnemySystem(runtime);
+  const damage = new DamageSystem(runtime);
+  const targeting = new TargetingSystem(runtime);
+  const projectiles = new ProjectileSystem(runtime, damage);
+  const atp = new ATPSystem(runtime);
+  const cells = new CellSystem(runtime, atp);
+  const boss = new BossSystem(runtime, enemies);
+  const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
+  cells.wireCombat(targeting, projectiles);
+
+  const plan = [
+    ["macrophage", "slot-4"],
+    ["nk", "slot-5"],
+    ["macrophage", "slot-7"],
+    ["nk", "slot-2"],
+    ["nk", "slot-6"],
+    ["macrophage", "slot-1"],
+    ["nk", "slot-3"]
+  ] as const;
+  let nextDeployment = 0;
+
+  for (let time = 0; time <= 260000 && runtime.status === "playing"; time += 250) {
+    while (nextDeployment < plan.length) {
+      const [kind, slotId] = plan[nextDeployment];
+      if (!cells.deploy(kind, slotId)) {
+        break;
+      }
+      nextDeployment += 1;
+    }
+    atp.update(time, 250);
+    waves.update(time, 250);
+    enemies.update(time, 250);
+    boss.update();
+    cells.update(time);
+    projectiles.update(time, 250);
+  }
+
+  assert.equal(runtime.status, "victory");
+  assert.ok(runtime.tissueIntegrity > 0);
+  assert.equal(runtime.cells.length, 7);
 });

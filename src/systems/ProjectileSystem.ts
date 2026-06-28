@@ -20,6 +20,7 @@ export class ProjectileSystem implements BattleSystem {
     this.runtime.projectiles.push({
       id: `projectile-${this.runtime.nextProjectileId}`,
       targetId: target.id,
+      sourceCellKind: cell.kind,
       x: cell.x,
       y: cell.y,
       damage: cell.attack,
@@ -50,7 +51,7 @@ export class ProjectileSystem implements BattleSystem {
           text: "",
           tone: "hit"
         });
-        this.damage.apply(target.id, projectile.damage);
+        this.damage.apply(target.id, projectile.damage, projectile.sourceCellKind);
         continue;
       }
       projectile.x += ((target.x - projectile.x) / distance) * step;

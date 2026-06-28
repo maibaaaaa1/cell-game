@@ -10,6 +10,6 @@ export const ENEMY_CONFIG: Record<string, EnemyRuntimeConfig> = {
   miniVirus: { id: "miniVirus", health: 30, speed: 1.55, reward: 4, damage: 3 },
   cancerCell: { id: "cancerCell", health: 650, speed: 0.55, reward: 50, damage: 5 },
   cancerKing: { id: "cancerKing", health: 10000, speed: 0.25, reward: 500, damage: 10 },
-  mutantVirusCluster: { id: "mutantVirusCluster", health: 1600, speed: 0.3, reward: 35, damage: 25 }
+  mutantVirusCluster: { id: "mutantVirusCluster", health: 2200, speed: 0.28, reward: 35, damage: 25 }
 };
 export const ENEMY_CONFIG_VERSION = "v0.1";

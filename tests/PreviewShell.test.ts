@@ -107,7 +107,7 @@ test("runtime cleanup resets restart-critical battle state", () => {
 
   runtime.cleanup();
 
-  assert.equal(runtime.atp, 160);
+  assert.equal(runtime.atp, 120);
   assert.equal(runtime.tissueIntegrity, 100);
   assert.equal(runtime.wave, 0);
   assert.equal(runtime.cells.length, 0);

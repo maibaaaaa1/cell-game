@@ -35,6 +35,7 @@ export interface RuntimeCell {
 export interface RuntimeProjectile {
   id: string;
   targetId: string;
+  sourceCellKind?: CellKind;
   x: number;
   y: number;
   damage: number;

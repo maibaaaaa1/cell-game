@@ -1,4 +1,5 @@
 import { ENEMY_CONFIG } from "../configs/enemyConfig.ts";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig.ts";
 import { ROUTE_CONFIG } from "../configs/routeConfig.ts";
 import type { BattleSystem } from "../types/battle.ts";
 import type { EnemyKind } from "../types/game.ts";
@@ -35,7 +36,7 @@ export class EnemySystem implements BattleSystem {
       health: config.health,
       maxHealth: config.health,
       speed: config.speed,
-      reward: config.reward,
+      reward: this.rewardFor(kind, config.reward),
       damage: config.damage,
       progress,
       x: position.x,
@@ -112,5 +113,10 @@ export class EnemySystem implements BattleSystem {
 
   private nameFor(kind: EnemyKind): string {
     return ENEMY_CONFIG[kind]?.id ?? kind;
+  }
+
+  private rewardFor(kind: EnemyKind, fallback: number): number {
+    const rewards = BATTLE_BALANCE_CONFIG.resources.firstLevelEnemyRewards;
+    return rewards[kind as keyof typeof rewards] ?? fallback;
   }
 }

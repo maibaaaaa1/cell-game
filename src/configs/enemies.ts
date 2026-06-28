@@ -120,8 +120,8 @@ export const ENEMY_CONFIGS: Record<EnemyConfig["id"], EnemyConfig> = {
   mutantVirusCluster: {
     id: "mutantVirusCluster",
     name: "变异病毒团",
-    health: 1600,
-    speed: 0.3,
+    health: 2200,
+    speed: 0.28,
     reward: 35,
     damage: 25,
     color: 0x7c3aed,
