@@ -137,6 +137,19 @@ test("battle scene loads optional sprites and keeps fallback rendering guarded",
 test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation cues", () => {
   const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
 
+  assert.ok(source.includes("createBattlefieldLayers"));
+  assert.ok(source.includes("backgroundLayer"));
+  assert.ok(source.includes("terrainLayer"));
+  assert.ok(source.includes("routeBaseLayer"));
+  assert.ok(source.includes("routeGlowLayer"));
+  assert.ok(source.includes("slotPlatformLayer"));
+  assert.ok(source.includes("shadowLayer"));
+  assert.ok(source.includes("unitLayer"));
+  assert.ok(source.includes("projectileLayer"));
+  assert.ok(source.includes("effectLayer"));
+  assert.ok(source.includes("labelLayer"));
+  assert.ok(source.includes("debugLayer"));
+  assert.ok(source.includes("addToBattlefieldLayer"));
   assert.ok(source.includes("createGroundedImage"));
   assert.ok(source.includes("setOrigin(0.5, asset.originY)"));
   assert.ok(source.includes("createSoftShadow"));
@@ -157,6 +170,22 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("playBossSplitFlash"));
   assert.ok(!source.includes("cell.range ="));
   assert.ok(!source.includes("enemy.speed ="));
+});
+
+test("battle scene routes battlefield objects through dedicated 2.5D layers", () => {
+  const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
+
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"backgroundLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"terrainLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"routeBaseLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"routeGlowLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"slotPlatformLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"shadowLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"unitLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"projectileLayer\""));
+  assert.ok(source.includes("this.addToBattlefieldLayer(\"effectLayer\""));
+  assert.match(source, /addToBattlefieldLayer\(\s*"labelLayer"/s);
+  assert.match(source, /addToBattlefieldLayer\(\s*"debugLayer"/s);
 });
 
 test("cell cards and codex can show icons without breaking fallback dots", () => {
