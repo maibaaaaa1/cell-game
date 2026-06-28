@@ -32,9 +32,9 @@ test("first level visual assets expose fallback colors and stable display sizes"
   assert.equal(getCellVisualAsset("macrophage")?.fallbackColor, 0xff9f1c);
   assert.equal(getCellVisualAsset("nk")?.fallbackColor, 0x7c3aed);
   assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 0) >= 72);
-  assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 99) <= 88);
-  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 0) >= 70);
-  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 99) <= 84);
+  assert.ok((getCellVisualAsset("macrophage")?.displaySize ?? 99) <= 74);
+  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 0) >= 68);
+  assert.ok((getCellVisualAsset("nk")?.displaySize ?? 99) <= 70);
 
   assert.equal(getEnemyVisualAsset("normalVirus")?.fallbackColor, 0xff6b3d);
   assert.equal(getEnemyVisualAsset("fastVirus")?.fallbackColor, 0xff3d2e);
@@ -45,12 +45,34 @@ test("first level visual assets expose fallback colors and stable display sizes"
   assert.ok((getEnemyVisualAsset("bacteria")?.displaySize ?? 0) >= 56);
   assert.ok((getEnemyVisualAsset("bacteria")?.displaySize ?? 0) > (getEnemyVisualAsset("normalVirus")?.displaySize ?? 99));
   assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 0) >= 32);
-  assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 99) <= 38);
+  assert.ok((getEnemyVisualAsset("miniVirus")?.displaySize ?? 99) <= 34);
 
   assert.equal(getBossVisualAsset("mutantVirusCluster")?.fallbackColor, 0xff5a2a);
-  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) >= 118);
-  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 99) <= 150);
-  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) > (getEnemyVisualAsset("bacteria")?.displaySize ?? 0) * 1.8);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) >= 110);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 99) <= 120);
+  assert.ok((getBossVisualAsset("mutantVirusCluster")?.displaySize ?? 0) > (getEnemyVisualAsset("bacteria")?.displaySize ?? 0) * 1.85);
+});
+
+test("first level visual assets define grounded origins and distinct fast-virus presentation", () => {
+  const macrophage = getCellVisualAsset("macrophage");
+  const nk = getCellVisualAsset("nk");
+  const normalVirus = getEnemyVisualAsset("normalVirus");
+  const fastVirus = getEnemyVisualAsset("fastVirus");
+  const bacteria = getEnemyVisualAsset("bacteria");
+  const miniVirus = getEnemyVisualAsset("miniVirus");
+  const boss = getBossVisualAsset("mutantVirusCluster");
+
+  assert.equal(macrophage?.originY, 0.84);
+  assert.equal(nk?.originY, 0.84);
+  assert.equal(normalVirus?.originY, 0.76);
+  assert.equal(fastVirus?.originY, 0.76);
+  assert.equal(bacteria?.originY, 0.78);
+  assert.equal(miniVirus?.originY, 0.76);
+  assert.equal(boss?.originY, 0.8);
+  assert.ok((boss?.displaySize ?? 999) <= 120);
+  assert.ok(fastVirus?.trail);
+  assert.ok(fastVirus?.displayWidth !== normalVirus?.displaySize);
+  assert.ok((bacteria?.shadow.widthRatio ?? 0) > (normalVirus?.shadow.widthRatio ?? 99));
 });
 
 test("configured first level lightweight png files are present in public assets", () => {
@@ -85,9 +107,13 @@ test("battle scene loads optional sprites and keeps fallback rendering guarded",
 test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation cues", () => {
   const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
 
-  assert.ok(source.includes("setDisplaySize(asset.displaySize, asset.displaySize)"));
+  assert.ok(source.includes("createGroundedImage"));
+  assert.ok(source.includes("setOrigin(0.5, asset.originY)"));
   assert.ok(source.includes("createSoftShadow"));
   assert.ok(source.includes("drawRouteChannel"));
+  assert.ok(source.includes("perspectiveWidthForY"));
+  assert.ok(source.includes("drawTissueTexture"));
+  assert.ok(source.includes("toVisualWorld"));
   assert.ok(source.includes("createFastVirusTrail"));
   assert.ok(source.includes("playBossSpawnFeedback"));
   assert.ok(source.includes("playMiniVirusPop"));

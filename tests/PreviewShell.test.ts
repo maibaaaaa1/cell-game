@@ -127,6 +127,10 @@ test("bottom cards and codex avatars crop 3D portraits without stretching", () =
 test("stage 2.13 skin does not change frozen first level balance", () => {
   const balance = readFileSync(new URL("../src/configs/balanceConfig.ts", import.meta.url), "utf8");
   const enemies = readFileSync(new URL("../src/configs/enemyConfig.ts", import.meta.url), "utf8");
+  const waves = readFileSync(new URL("../src/configs/waveConfig.ts", import.meta.url), "utf8");
+  const routes = readFileSync(new URL("../src/configs/routeConfig.ts", import.meta.url), "utf8");
+  const cells = readFileSync(new URL("../src/configs/cellConfig.ts", import.meta.url), "utf8");
+  const boss = readFileSync(new URL("../src/configs/bossConfig.ts", import.meta.url), "utf8");
 
   assert.ok(balance.includes("initialAtp: 120"));
   assert.ok(balance.includes("atpPerSecond: 2.5"));
@@ -134,6 +138,13 @@ test("stage 2.13 skin does not change frozen first level balance", () => {
   assert.ok(balance.includes("nkDamageMultiplier: 0.72"));
   assert.ok(balance.includes("nkAttackRateMultiplier: 0.72"));
   assert.ok(enemies.includes("mutantVirusCluster: { id: \"mutantVirusCluster\", health: 2200, speed: 0.28"));
+  assert.ok(waves.includes("pacedWave(9, \"Boss 变异病毒团\", 30000"));
+  assert.ok(waves.includes("{ enemy: \"mutantVirusCluster\", count: 1, route: \"mixed\""));
+  assert.ok(routes.includes("const noseSlots: RouteSlotConfig[] = ["));
+  assert.ok(routes.includes("cellSlots: noseSlots"));
+  assert.ok(routes.includes("{ id: \"slot-7\", row: 2, col: 1, x: 0.5, y: 0.72 }"));
+  assert.ok(cells.includes("nk: { id: \"nk\", cost: 70"));
+  assert.ok(boss.includes("cancerKing"));
 });
 
 test("first level core is drawn at the bottom instead of the old right side", () => {

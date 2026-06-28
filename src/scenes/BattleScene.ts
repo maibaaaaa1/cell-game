@@ -196,9 +196,31 @@ export class BattleScene extends Phaser.Scene {
     this.add.ellipse(this.centerX, this.height * 0.18, this.width * 0.92, this.height * 0.34, 0xdff7ff, 0.82).setDepth(0);
     this.add.ellipse(this.centerX, this.height * 0.58, this.width * 1.18, this.height * 0.62, 0xf0fffb, 0.78).setDepth(0);
     this.add.rectangle(this.centerX, this.centerY, this.width - 22, this.height - 18, 0xffffff, 0.12).setStrokeStyle(2, 0x8be8ff, 0.24).setDepth(0);
+    this.drawTissueTexture();
     this.drawRoutes();
     this.drawCore();
     this.drawSlots();
+  }
+
+  private drawTissueTexture(): void {
+    const strands = [
+      [0.18, 0.16, 90, 26, 10],
+      [0.74, 0.2, 120, 32, -8],
+      [0.2, 0.46, 150, 34, -12],
+      [0.82, 0.52, 130, 30, 12],
+      [0.36, 0.78, 180, 38, 6],
+      [0.72, 0.82, 120, 28, -10]
+    ];
+    for (const [x, y, width, height, rotation] of strands) {
+      const world = this.toVisualWorld(x, y);
+      const strand = this.add.ellipse(world.x, world.y, width, height, 0xffffff, 0).setDepth(0.5);
+      strand.setStrokeStyle(2, 0x9debdc, 0.16);
+      strand.setRotation(Phaser.Math.DegToRad(rotation));
+    }
+    for (const [x, y] of [[0.13, 0.32], [0.88, 0.36], [0.18, 0.68], [0.86, 0.72]]) {
+      const world = this.toVisualWorld(x, y);
+      this.add.circle(world.x, world.y, 18, 0xffffff, 0.18).setDepth(0.5);
+    }
   }
 
   private drawRoutes(): void {
@@ -214,11 +236,12 @@ export class BattleScene extends Phaser.Scene {
     const inner = this.add.graphics().setDepth(3);
     const highlight = this.add.graphics().setDepth(4);
 
-    this.strokeRoutePath(shadow, route.points, 52, 0x6b7280, 0.16, 0, 9);
-    this.strokeRoutePath(base, route.points, 48, 0xb6f4ea, 0.88);
-    this.strokeRoutePath(inner, route.points, 28, 0xeefffb, 0.78);
-    this.strokeRoutePath(highlight, route.points, 5, 0x49ddff, 0.48, -4, -4);
-    this.strokeRoutePath(highlight, route.points, 3, 0x0694a2, 0.28, 5, 5);
+    this.strokeRoutePath(shadow, route.points, 56, 0x1f2937, 0.14, 0, 12);
+    this.strokeRoutePath(base, route.points, 50, 0x8debe0, 0.82);
+    this.strokeRoutePath(inner, route.points, 31, 0xf4fffb, 0.8);
+    this.strokeRoutePath(highlight, route.points, 7, 0xefffff, 0.5, -5, -5);
+    this.strokeRoutePath(highlight, route.points, 4, 0x0694a2, 0.3, 5, 5);
+    this.strokeRoutePath(highlight, route.points, 2, 0x49ddff, 0.32);
   }
 
   private strokeRoutePath(
@@ -230,17 +253,24 @@ export class BattleScene extends Phaser.Scene {
     offsetX = 0,
     offsetY = 0
   ): void {
-    graphics.lineStyle(width, color, alpha);
     points.forEach((point, index) => {
-      const world = this.toWorld(point.x, point.y);
       if (index === 0) {
-        graphics.beginPath();
-        graphics.moveTo(world.x + offsetX, world.y + offsetY);
         return;
       }
-      graphics.lineTo(world.x + offsetX, world.y + offsetY);
+      const previous = points[index - 1];
+      const midY = (previous.y + point.y) / 2;
+      const from = this.toVisualWorld(previous.x, previous.y);
+      const to = this.toVisualWorld(point.x, point.y);
+      graphics.lineStyle(this.perspectiveWidthForY(midY, width), color, alpha);
+      graphics.beginPath();
+      graphics.moveTo(from.x + offsetX, from.y + offsetY);
+      graphics.lineTo(to.x + offsetX, to.y + offsetY);
+      graphics.strokePath();
     });
-    graphics.strokePath();
+  }
+
+  private perspectiveWidthForY(normalizedY: number, baseWidth: number): number {
+    return baseWidth * (0.72 + normalizedY * 0.32);
   }
 
   private drawCore(): void {
@@ -263,8 +293,9 @@ export class BattleScene extends Phaser.Scene {
     this.slots = ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => {
       const world = this.toWorld(slot.x, slot.y);
       const radius = DEPLOY_SLOT_VISUAL_RADIUS;
-      this.add.ellipse(world.x, world.y + 5, radius * 2.35, radius * 1.1, 0x075985, 0.16).setDepth(8);
-      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.2).setDepth(9);
+      this.add.ellipse(world.x, world.y + 8, radius * 2.8, radius * 1.12, 0x075985, 0.18).setDepth(8);
+      this.add.ellipse(world.x, world.y + 2, radius * 2.35, radius * 0.78, 0xe6fffb, 0.56).setDepth(9);
+      const view = this.add.circle(world.x, world.y, radius, 0x38bdf8, 0.18).setDepth(10);
       view.setStrokeStyle(3, 0x38bdf8, 0.72);
       this.slotDiscs.set(slot.id, view);
       return { id: slot.id, x: world.x, y: world.y, radius };
@@ -336,8 +367,7 @@ export class BattleScene extends Phaser.Scene {
         view = this.createEnemyView(enemy, world.x, world.y);
         this.enemyViews.set(enemy.id, view);
       }
-      const floatOffset = enemy.kind === "mutantVirusCluster" ? Math.sin(this.time.now / 360) * 1.6 : Math.sin(this.time.now / 240 + enemy.progress * 9) * 2.2;
-      view.setPosition(world.x, world.y + floatOffset);
+      view.setPosition(world.x, world.y);
       view.setDepth(32 + world.y / 16);
       this.updateEnemyVisualMotion(view, enemy);
       const hp = view.getByName("hp") as Phaser.GameObjects.Rectangle | null;
@@ -375,22 +405,21 @@ export class BattleScene extends Phaser.Scene {
 
   private createCellView(cell: RuntimeCell, x: number, y: number): Phaser.GameObjects.Container {
     const asset = getCellVisualAsset(cell.kind);
-    const size = asset?.displaySize ?? (cell.kind === "macrophage" ? 82 : 78);
-    const shadow = this.createSoftShadow(size * 0.68, size * 0.22, 0.2);
-    shadow.setPosition(0, size * 0.3);
-    const glow = this.add.circle(0, 0, size * 0.4, cell.kind === "macrophage" ? 0xffb454 : 0x8b5cf6, 0.12);
+    const size = asset?.displaySize ?? (cell.kind === "macrophage" ? 72 : 68);
+    const shadow = this.createAssetShadow(asset, size);
+    const glow = this.add.ellipse(0, 1, size * 0.72, size * 0.2, cell.kind === "macrophage" ? 0xffb454 : 0x8b5cf6, 0.12);
     const visual = asset && this.textures.exists(asset.sprite.key)
-      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(asset.displaySize, asset.displaySize)
+      ? this.createGroundedImage(asset)
       : this.createCellFallbackShape(cell.kind, asset);
     visual.setName("visual");
     const label = this.add
-      .text(0, size * 0.43, cell.kind === "macrophage" ? "巨噬" : "NK", {
+      .text(0, -size * 0.18, cell.kind === "macrophage" ? "巨噬" : "NK", {
         fontFamily: "system-ui",
-        fontSize: "11px",
+        fontSize: "10px",
         fontStyle: "900",
         color: "#ffffff",
-        backgroundColor: "rgba(7,17,35,0.58)",
-        padding: { left: 5, right: 5, top: 2, bottom: 2 }
+        backgroundColor: "rgba(7,17,35,0.46)",
+        padding: { left: 4, right: 4, top: 1, bottom: 1 }
       })
       .setOrigin(0.5);
     return this.add.container(x, y, [shadow, glow, visual, label]);
@@ -398,26 +427,23 @@ export class BattleScene extends Phaser.Scene {
 
   private createEnemyView(enemy: RuntimeEnemy, x: number, y: number): Phaser.GameObjects.Container {
     const asset = getEnemyOrBossVisualAsset(enemy.kind);
-    const size = asset?.displaySize ?? (enemy.kind === "mutantVirusCluster" ? 132 : enemy.kind === "bacteria" ? 64 : enemy.kind === "miniVirus" ? 36 : 48);
+    const size = asset?.displaySize ?? (enemy.kind === "mutantVirusCluster" ? 116 : enemy.kind === "bacteria" ? 58 : enemy.kind === "miniVirus" ? 34 : 42);
     const radius = size / 2;
+    const displayWidth = asset?.displayWidth ?? size;
+    const displayHeight = asset?.displayHeight ?? size;
     const children: Phaser.GameObjects.GameObject[] = [];
-    const shadow = this.createSoftShadow(
-      enemy.kind === "mutantVirusCluster" ? size * 0.74 : enemy.kind === "bacteria" ? size * 0.72 : size * 0.58,
-      enemy.kind === "mutantVirusCluster" ? size * 0.22 : size * 0.18,
-      enemy.kind === "mutantVirusCluster" ? 0.28 : 0.18
-    );
-    shadow.setPosition(0, radius * 0.48);
+    const shadow = this.createAssetShadow(asset, size);
     children.push(shadow);
-    if (enemy.kind === "fastVirus") {
-      children.push(this.createFastVirusTrail(size));
+    if (asset?.trail) {
+      children.push(this.createFastVirusTrail(asset));
     }
     if (enemy.kind === "mutantVirusCluster") {
-      const aura = this.add.circle(0, 0, radius * 0.78, 0xff3d2e, 0.14);
-      aura.setStrokeStyle(4, 0xff9f1c, 0.28);
+      const aura = this.add.ellipse(0, -displayHeight * 0.3, displayWidth * 0.9, displayHeight * 0.64, 0xff3d2e, 0.08);
+      aura.setStrokeStyle(3, 0xff9f1c, 0.18);
       children.push(aura);
     }
     const visual = asset && this.textures.exists(asset.sprite.key)
-      ? this.add.image(0, 0, asset.sprite.key).setDisplaySize(enemy.kind === "fastVirus" ? size * 1.14 : size, enemy.kind === "fastVirus" ? size * 0.92 : size)
+      ? this.createGroundedImage(asset)
       : this.createEnemyFallbackShape(enemy.kind, asset, radius);
     visual.setName("visual");
     if (enemy.kind === "fastVirus") {
@@ -425,16 +451,17 @@ export class BattleScene extends Phaser.Scene {
     }
     children.push(visual);
 
-    const hpWidth = enemy.kind === "mutantVirusCluster" ? radius * 1.65 : radius * 1.45;
+    const hpWidth = enemy.kind === "mutantVirusCluster" ? displayWidth * 0.78 : displayWidth * 0.72;
     const hpHeight = enemy.kind === "mutantVirusCluster" ? 8 : 5;
-    const hpBack = this.add.rectangle(0, -radius - 11, hpWidth, hpHeight, 0xffffff, 0.94);
-    const hp = this.add.rectangle(-hpWidth / 2, -radius - 11, hpWidth, hpHeight, enemy.kind === "mutantVirusCluster" ? 0xef4444 : 0x22c55e, 1).setOrigin(0, 0.5).setName("hp");
+    const hpY = -displayHeight * (asset?.originY ?? 0.76) - (enemy.kind === "mutantVirusCluster" ? 14 : 7);
+    const hpBack = this.add.rectangle(0, hpY, hpWidth, hpHeight, 0xffffff, 0.94);
+    const hp = this.add.rectangle(-hpWidth / 2, hpY, hpWidth, hpHeight, enemy.kind === "mutantVirusCluster" ? 0xef4444 : 0x22c55e, 1).setOrigin(0, 0.5).setName("hp");
     hpBack.setStrokeStyle(1, 0x071123, 0.18);
     children.push(hpBack, hp);
 
     if (enemy.kind === "mutantVirusCluster") {
       const label = this.add
-        .text(0, -radius - 25, "BOSS", {
+        .text(0, hpY - 16, "BOSS", {
           fontFamily: "system-ui",
           fontSize: "13px",
           fontStyle: "900",
@@ -460,8 +487,34 @@ export class BattleScene extends Phaser.Scene {
     return this.add.ellipse(0, 0, width, height, 0x071123, alpha);
   }
 
-  private createFastVirusTrail(size: number): Phaser.GameObjects.Ellipse {
-    const trail = this.add.ellipse(-size * 0.34, size * 0.1, size * 0.74, size * 0.22, 0xff7a1a, 0.24);
+  private createAssetShadow(asset: VisualAssetConfig | undefined, size: number): Phaser.GameObjects.Ellipse {
+    const shadow = asset?.shadow ?? { widthRatio: 0.66, heightRatio: 0.18, alpha: 0.18, offsetYRatio: 0.05 };
+    const width = (asset?.displayWidth ?? size) * shadow.widthRatio;
+    const height = (asset?.displayHeight ?? size) * shadow.heightRatio;
+    const ellipse = this.createSoftShadow(width, height, shadow.alpha);
+    ellipse.setPosition(0, size * shadow.offsetYRatio);
+    return ellipse;
+  }
+
+  private createGroundedImage(asset: VisualAssetConfig): Phaser.GameObjects.Image {
+    return this.add
+      .image(0, 0, asset.sprite.key)
+      .setOrigin(0.5, asset.originY)
+      .setDisplaySize(asset.displayWidth ?? asset.displaySize, asset.displayHeight ?? asset.displaySize);
+  }
+
+  private createFastVirusTrail(asset: VisualAssetConfig): Phaser.GameObjects.Ellipse {
+    const trailConfig = asset.trail ?? { color: 0xff7a1a, alpha: 0.2, widthRatio: 0.8, heightRatio: 0.2, offsetXRatio: -0.4, offsetYRatio: 0 };
+    const width = (asset.displayWidth ?? asset.displaySize) * trailConfig.widthRatio;
+    const height = (asset.displayHeight ?? asset.displaySize) * trailConfig.heightRatio;
+    const trail = this.add.ellipse(
+      asset.displaySize * trailConfig.offsetXRatio,
+      asset.displaySize * trailConfig.offsetYRatio,
+      width,
+      height,
+      trailConfig.color,
+      trailConfig.alpha
+    );
     trail.setName("fast-virus-trail");
     return trail;
   }
@@ -473,7 +526,7 @@ export class BattleScene extends Phaser.Scene {
     }
     if (enemy.kind === "fastVirus") {
       visual.setRotation(0.18 + Math.sin(this.time.now / 130) * 0.08);
-      view.setScale(1 + Math.sin(this.time.now / 120) * 0.025, 1);
+      visual.setY(Math.sin(this.time.now / 120) * -1.2);
       return;
     }
     if (enemy.kind === "bacteria") {
@@ -483,6 +536,7 @@ export class BattleScene extends Phaser.Scene {
     if (enemy.kind === "mutantVirusCluster") {
       const pulse = 1 + Math.sin(this.time.now / 420) * 0.035;
       visual.setScale(pulse);
+      visual.setY(Math.sin(this.time.now / 360) * -1.4);
     }
   }
 
@@ -526,10 +580,12 @@ export class BattleScene extends Phaser.Scene {
 
   private createCellFallbackShape(kind: CellKind, asset?: VisualAssetConfig): Phaser.GameObjects.Shape {
     const color = asset?.fallbackColor ?? (kind === "macrophage" ? 0xff9f1c : 0x7c3aed);
-    const radius = (asset?.displaySize ?? (kind === "macrophage" ? 82 : 78)) * 0.38;
+    const size = asset?.displaySize ?? (kind === "macrophage" ? 72 : 68);
+    const radius = size * 0.38;
     const shape = kind === "macrophage"
       ? this.add.circle(0, 0, radius, color, 1)
       : this.add.star(0, 0, 7, radius * 0.42, radius, color, 1);
+    shape.setY(-size * ((asset?.originY ?? 0.84) - 0.5));
     shape.setStrokeStyle(3, 0xffffff, 0.95);
     return shape;
   }
@@ -539,6 +595,7 @@ export class BattleScene extends Phaser.Scene {
     const shape = kind === "bacteria"
       ? this.add.ellipse(0, 0, radius * 2.2, radius * 1.55, color, 1)
       : this.add.star(0, 0, kind === "mutantVirusCluster" ? 13 : 9, radius * 0.58, radius, color, 1);
+    shape.setY(-(asset?.displaySize ?? radius * 2) * ((asset?.originY ?? 0.76) - 0.5));
     shape.setStrokeStyle(kind === "mutantVirusCluster" ? 4 : 3, 0xffffff, 0.9);
     return shape;
   }
@@ -743,8 +800,13 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private toWorld(x: number, y: number): { x: number; y: number } {
+    return this.toVisualWorld(x, y);
+  }
+
+  private toVisualWorld(x: number, y: number): { x: number; y: number } {
+    const perspective = 0.82 + y * 0.18;
     return {
-      x: x * this.width,
+      x: this.centerX + (x - 0.5) * this.width * perspective,
       y: y * this.height
     };
   }

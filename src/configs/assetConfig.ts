@@ -10,6 +10,23 @@ export interface VisualAssetConfig {
   icon?: ImageAssetRef;
   fallbackColor: number;
   displaySize: number;
+  originY: number;
+  displayWidth?: number;
+  displayHeight?: number;
+  shadow: {
+    widthRatio: number;
+    heightRatio: number;
+    alpha: number;
+    offsetYRatio: number;
+  };
+  trail?: {
+    color: number;
+    alpha: number;
+    widthRatio: number;
+    heightRatio: number;
+    offsetXRatio: number;
+    offsetYRatio: number;
+  };
 }
 
 export const ASSET_CONFIG = {
@@ -23,42 +40,59 @@ export const ASSET_CONFIG = {
       sprite: { key: "cell_macrophage_256", path: "/assets/images/cells/sprite/cell_macrophage_256.png" },
       icon: { key: "cell_macrophage_icon_256", path: "/assets/images/cells/icon/cell_macrophage_256.png" },
       fallbackColor: 0xff9f1c,
-      displaySize: 82
+      displaySize: 72,
+      originY: 0.84,
+      shadow: { widthRatio: 0.78, heightRatio: 0.2, alpha: 0.24, offsetYRatio: 0.04 }
     },
     nk: {
       sprite: { key: "cell_nk_256", path: "/assets/images/cells/sprite/cell_nk_256.png" },
       icon: { key: "cell_nk_icon_256", path: "/assets/images/cells/icon/cell_nk_256.png" },
       fallbackColor: 0x7c3aed,
-      displaySize: 78
+      displaySize: 68,
+      originY: 0.84,
+      shadow: { widthRatio: 0.72, heightRatio: 0.18, alpha: 0.22, offsetYRatio: 0.04 }
     }
   },
   enemies: {
     normalVirus: {
       sprite: { key: "enemy_normal_virus_256", path: "/assets/images/enemies/sprite/enemy_normal_virus_256.png" },
       fallbackColor: 0xff6b3d,
-      displaySize: 48
+      displaySize: 42,
+      originY: 0.76,
+      shadow: { widthRatio: 0.64, heightRatio: 0.17, alpha: 0.18, offsetYRatio: 0.05 }
     },
     fastVirus: {
       sprite: { key: "enemy_fast_virus_256", path: "/assets/images/enemies/sprite/enemy_fast_virus_256.png" },
       fallbackColor: 0xff3d2e,
-      displaySize: 50
+      displaySize: 44,
+      displayWidth: 50,
+      displayHeight: 38,
+      originY: 0.76,
+      shadow: { widthRatio: 0.72, heightRatio: 0.15, alpha: 0.16, offsetYRatio: 0.05 },
+      trail: { color: 0xff7a1a, alpha: 0.24, widthRatio: 0.92, heightRatio: 0.2, offsetXRatio: -0.42, offsetYRatio: -0.06 }
     },
     bacteria: {
       sprite: { key: "enemy_bacteria_256", path: "/assets/images/enemies/sprite/enemy_bacteria_256.png" },
       fallbackColor: 0xb5d94a,
-      displaySize: 64
+      displaySize: 58,
+      originY: 0.78,
+      shadow: { widthRatio: 0.88, heightRatio: 0.2, alpha: 0.24, offsetYRatio: 0.05 }
     },
     miniVirus: {
       sprite: { key: "enemy_mini_virus_256", path: "/assets/images/enemies/sprite/enemy_mini_virus_256.png" },
       fallbackColor: 0xff735c,
-      displaySize: 36
+      displaySize: 34,
+      originY: 0.76,
+      shadow: { widthRatio: 0.62, heightRatio: 0.16, alpha: 0.17, offsetYRatio: 0.05 }
     }
   },
   bosses: {
     mutantVirusCluster: {
       sprite: { key: "boss_mutant_virus_cluster_256", path: "/assets/images/bosses/sprite/boss_mutant_virus_cluster_256.png" },
       fallbackColor: 0xff5a2a,
-      displaySize: 132
+      displaySize: 116,
+      originY: 0.8,
+      shadow: { widthRatio: 0.92, heightRatio: 0.24, alpha: 0.28, offsetYRatio: 0.04 }
     }
   },
   audio: {
