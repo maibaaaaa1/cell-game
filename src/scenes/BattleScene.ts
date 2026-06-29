@@ -538,16 +538,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawLifeCoreShield(): void {
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 8, this.width * 0.92, 72, 0x050816, 0.34));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 45, this.width * 0.72, 78, 0x5b1134, 0.32));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 56, this.width * 0.62, 54, 0x22d3ee, 0.16));
-    const shield = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 54, this.width * 0.58, 62, 0xff7aa2, 0.28));
-    shield.setStrokeStyle(3, 0xa7f3d0, 0.48);
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 58, this.width * 0.38, 36, 0xffd0e8, 0.38));
-    const crystal = this.addToBattlefieldLayer("slotPlatformLayer", this.add.star(this.centerX, this.height - 62, 6, 12, 28, 0xff4fb2, 0.72));
-    crystal.setStrokeStyle(3, 0xffffff, 0.56);
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 68, this.width * 0.3, 10, 0xffffff, 0.3));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 50, this.width * 0.68, 72, 0x22d3ee, 0).setStrokeStyle(3, 0x22d3ee, 0.42));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 28, this.width * 0.7, 74, 0x050816, 0.16));
+    const shield = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 55, this.width * 0.52, 58, 0xff7aa2, 0.08));
+    shield.setStrokeStyle(3, 0xa7f3d0, 0.22);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 50, this.width * 0.64, 72, 0x22d3ee, 0).setStrokeStyle(2, 0x22d3ee, 0.22));
   }
 
   private drawSlots(): void {
@@ -576,8 +570,8 @@ export class BattleScene extends Phaser.Scene {
   private drawBiologicalPlatform(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
     this.drawPlatformSocket(x, y, radius);
     this.drawImmunePlatformRim(x, y, radius);
-    const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 3, radius * 0.72, 0x22d3ee, 0.34));
-    view.setStrokeStyle(3, 0xdffbff, 0.72);
+    const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 3, radius * 0.72, 0x22d3ee, 0.12));
+    view.setStrokeStyle(3, 0xdffbff, 0.42);
     this.tweens.add({
       targets: view,
       alpha: { from: 0.72, to: 0.42 },
@@ -591,18 +585,15 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawPlatformSocket(x: number, y: number, radius: number): void {
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 16, radius * 4.15, radius * 1.35, 0x050816, 0.36));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 9, radius * 3.45, radius * 1.1, 0x6d173b, 0.5));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 5, radius * 3.18, radius * 0.95, 0xff9eaa, 0.24));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 14, radius * 3.65, radius * 1.12, 0x050816, 0.16));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 6, radius * 3.08, radius * 0.88, 0xff9eaa, 0.08));
   }
 
   private drawImmunePlatformRim(x: number, y: number, radius: number): void {
-    const outer = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 2, radius * 3.0, radius * 0.94, 0xd89682, 0.64));
-    outer.setStrokeStyle(4, 0xffd6a3, 0.58);
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 1, radius * 2.38, radius * 0.7, 0x7c3f5a, 0.42).setStrokeStyle(3, 0x76e9ff, 0.5));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 4, radius * 1.62, radius * 0.45, 0xe0fbff, 0.44));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 7, radius * 1.02, radius * 0.24, 0xffffff, 0.36));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 5, radius * 0.34, 0x3ccbff, 0.72).setStrokeStyle(2, 0xffffff, 0.68));
+    const outer = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 2, radius * 2.8, radius * 0.86, 0xd89682, 0.16));
+    outer.setStrokeStyle(3, 0xffd6a3, 0.24);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 1, radius * 2.25, radius * 0.64, 0x7c3f5a, 0.08).setStrokeStyle(3, 0x76e9ff, 0.32));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 5, radius * 0.28, 0x3ccbff, 0.34).setStrokeStyle(2, 0xffffff, 0.42));
   }
 
   private updateSlotHighlights(): void {
@@ -827,8 +818,16 @@ export class BattleScene extends Phaser.Scene {
 
   private createBattleCellActor(kind: CellKind, asset?: VisualAssetConfig): Phaser.GameObjects.Container {
     const size = asset?.displaySize ?? (kind === "macrophage" ? 72 : 68);
+    const actor = this.add.container(0, 0);
+    if (asset && this.textures.exists(asset.sprite.key)) {
+      const sprite = this.createGroundedImage(asset);
+      sprite.setName("transparent-2-5d-sprite");
+      actor.add(sprite);
+      actor.add(this.add.ellipse(0, size * 0.18, size * 0.58, size * 0.13, kind === "macrophage" ? 0xffb454 : 0x8b5cf6, 0.1));
+      return actor;
+    }
     const rootY = -size * ((asset?.originY ?? 0.84) - 0.5);
-    const actor = this.add.container(0, rootY);
+    actor.setY(rootY);
     const color = kind === "macrophage" ? 0xff9f1c : 0x7c3aed;
     const dark = kind === "macrophage" ? 0x7c2d12 : 0x312e81;
     const body = kind === "macrophage"
@@ -862,8 +861,15 @@ export class BattleScene extends Phaser.Scene {
 
   private createBattleEnemyActor(kind: EnemyKind, asset: VisualAssetConfig | undefined, radius: number): Phaser.GameObjects.Container {
     const size = asset?.displaySize ?? radius * 2;
+    const actor = this.add.container(0, 0);
+    if (asset && this.textures.exists(asset.sprite.key)) {
+      const sprite = this.createGroundedImage(asset);
+      sprite.setName("transparent-2-5d-sprite");
+      actor.add(sprite);
+      return actor;
+    }
     const y = -size * ((asset?.originY ?? 0.76) - 0.5);
-    const actor = this.add.container(0, y);
+    actor.setY(y);
     if (kind === "bacteria") {
       const body = this.add.ellipse(0, 0, radius * 2.15, radius * 1.42, 0x86a93b, 1);
       body.setStrokeStyle(3, 0xf4ffd2, 0.75);
@@ -884,8 +890,16 @@ export class BattleScene extends Phaser.Scene {
 
   private createBossBattleActor(asset?: VisualAssetConfig): Phaser.GameObjects.Container {
     const size = asset?.displaySize ?? 116;
+    const actor = this.add.container(0, 0);
+    if (asset && this.textures.exists(asset.sprite.key)) {
+      const sprite = this.createGroundedImage(asset);
+      sprite.setName("transparent-2-5d-sprite");
+      actor.add(sprite);
+      actor.add(this.add.ellipse(0, size * 0.2, size * 0.9, size * 0.18, 0xff3d2e, 0.08));
+      return actor;
+    }
     const y = -size * ((asset?.originY ?? 0.8) - 0.5);
-    const actor = this.add.container(0, y);
+    actor.setY(y);
     const body = this.add.star(0, 0, 15, size * 0.27, size * 0.48, 0x6d28d9, 1);
     body.setStrokeStyle(5, 0xff6b6b, 0.78);
     actor.add(body);

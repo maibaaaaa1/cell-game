@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { ASSET_CONFIG, FIRST_LEVEL_REQUIRED_ASSET_KEYS, getBossVisualAsset, getCellVisualAsset, getEnemyVisualAsset } from "../src/configs/assetConfig.ts";
 
+function pngHasTransparentPixels(path: string): boolean {
+  const bytes = readFileSync(path);
+  return bytes.includes(Buffer.from("tRNS", "ascii")) || bytes[25] === 6;
+}
+
 test("asset config contains first level required sprite and icon paths", () => {
   assert.equal(ASSET_CONFIG.cells.macrophage.sprite.path, "/assets/images/cells/sprite/cell_macrophage_256.png");
   assert.equal(ASSET_CONFIG.cells.macrophage.icon.path, "/assets/images/cells/icon/cell_macrophage_256.png");
@@ -104,6 +109,23 @@ test("configured first level lightweight png files are present in public assets"
   }
 });
 
+test("first level battle sprites are alpha-capable transparent png assets", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const paths = [
+    ASSET_CONFIG.cells.macrophage.sprite.path,
+    ASSET_CONFIG.cells.nk.sprite.path,
+    ASSET_CONFIG.enemies.normalVirus.sprite.path,
+    ASSET_CONFIG.enemies.fastVirus.sprite.path,
+    ASSET_CONFIG.enemies.bacteria.sprite.path,
+    ASSET_CONFIG.enemies.miniVirus.sprite.path,
+    ASSET_CONFIG.bosses.mutantVirusCluster.sprite.path
+  ];
+
+  for (const path of paths) {
+    assert.equal(pngHasTransparentPixels(join(root, "public", path.replace(/^\//, ""))), true, `${path} should support alpha`);
+  }
+});
+
 test("battle background config enables the final pure nasal background and keeps fallback ready", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const background = ASSET_CONFIG.backgrounds.battle01Nasal;
@@ -192,6 +214,7 @@ test("first level visual reconstruction avoids white gutters and raw white-backe
   assert.ok(scene.includes("createBattleCellActor"));
   assert.ok(scene.includes("createBattleEnemyActor"));
   assert.ok(scene.includes("createBossBattleActor"));
+  assert.ok(scene.includes("transparent-2-5d-sprite"));
   assert.ok(shell.includes("phaser-host relative overflow-hidden rounded-xl"));
   assert.ok(!shell.includes("phaser-host relative w-full overflow-hidden rounded-xl bg-white"));
   assert.match(styles, /\.phaser-host\s*{[^}]*flex: 1 1 auto;/s);
