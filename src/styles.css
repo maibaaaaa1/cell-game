@@ -819,6 +819,8 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
   }
 
   .pause-toggle-button {
+    grid-column: 2;
+    grid-row: 1;
     min-height: 2.75rem;
     border-radius: 0.75rem;
     padding-left: 0.8rem;
@@ -826,6 +828,9 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
   }
 
   .battle-canvas-frame {
+    align-self: center;
+    aspect-ratio: 9 / 16;
+    width: min(100%, calc((100dvh - 18rem) * 0.5625));
     border-radius: 1rem;
     padding: 0.3rem;
   }

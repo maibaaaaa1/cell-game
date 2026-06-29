@@ -105,7 +105,16 @@ test("mobile battle HUD uses a compact non-overlapping narrow-screen grid", () =
 
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-main\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto;/s);
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-stats\s*\{[\s\S]*grid-column: 1 \/ -1;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.pause-toggle-button\s*\{[\s\S]*grid-column: 2;[\s\S]*grid-row: 1;/s);
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-title-chip\s*\{[\s\S]*min-width: 0;/s);
+});
+
+test("mobile battlefield frame matches the portrait canvas instead of leaving side gutters", () => {
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*align-self: center;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*aspect-ratio: 9 \/ 16;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*width: min\(100%, calc\(\(100dvh - 18rem\) \* 0\.5625\)\);/s);
 });
 
 test("v0.1 skin exposes immune sci-fi theme variables and product shell classes", () => {
