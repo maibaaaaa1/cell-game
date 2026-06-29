@@ -176,7 +176,7 @@ test("stage 2.13 skin does not change frozen first level balance", () => {
   assert.ok(waves.includes("{ enemy: \"mutantVirusCluster\", count: 1, route: \"mixed\""));
   assert.ok(routes.includes("const noseSlots: RouteSlotConfig[] = ["));
   assert.ok(routes.includes("cellSlots: noseSlots"));
-  assert.ok(routes.includes("{ id: \"slot-7\", row: 2, col: 1, x: 0.5, y: 0.72 }"));
+  assert.ok(routes.includes("{ id: \"slot-6\", row: 3, col: 1, x: 0.5, y: 0.74 }"));
   assert.ok(cells.includes("nk: { id: \"nk\", cost: 70"));
   assert.ok(boss.includes("cancerKing"));
 });

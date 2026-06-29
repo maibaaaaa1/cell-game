@@ -28,7 +28,7 @@ function routeLength(routeId: string): number {
   }, 0);
 }
 
-test("first level config uses double routes, seven slots, nine waves, and requested economy", () => {
+test("first level config uses double routes, six final mockup slots, nine waves, and requested economy", () => {
   const level = LEVEL_CONFIG.chapters[0].levels[0];
   const routes = level.routeIds.map((routeId) => ROUTE_CONFIG[routeId]);
   const waves = WAVE_CONFIG[level.waveSetId].waves;
@@ -36,7 +36,7 @@ test("first level config uses double routes, seven slots, nine waves, and reques
   assert.equal(level.id, "nose-1");
   assert.equal(level.title, "鼻腔保卫战");
   assert.equal(routes.length, 2);
-  assert.equal(routes[0].cellSlots.length, 7);
+  assert.equal(routes[0].cellSlots.length, 6);
   assert.equal(waves.length, 9);
   assert.equal(BATTLE_BALANCE_CONFIG.resources.initialAtp, 120);
   assert.ok(BATTLE_BALANCE_CONFIG.resources.atpPerSecond <= 3);
@@ -84,24 +84,61 @@ test("first level wave pacing uses opening prep, short rests, and ten second bos
 });
 
 test("first level routes move from top entrance toward bottom tissue core", () => {
-  for (const routeId of ["noseLeft", "noseRight"]) {
-    const route = ROUTE_CONFIG[routeId];
+  const leftRoute = ROUTE_CONFIG.noseLeft;
+  const rightRoute = ROUTE_CONFIG.noseRight;
+
+  assert.ok(leftRoute.points[0].x > 0.28 && leftRoute.points[0].x < 0.39, "left route should start at the left nostril opening");
+  assert.ok(rightRoute.points[0].x > 0.61 && rightRoute.points[0].x < 0.72, "right route should start at the right nostril opening");
+
+  for (const route of [leftRoute, rightRoute]) {
     const start = route.points[0];
     const end = route.points[route.points.length - 1];
 
-    assert.ok(start.y < 0.12, `${routeId} should enter from the top`);
-    assert.ok(end.y > 0.86, `${routeId} should end near the bottom tissue core`);
-    assert.ok(start.y < end.y, `${routeId} must move downward overall`);
-    assert.ok(routeLength(routeId) >= 0.92, `${routeId} should be long enough for a visible tower-defense march`);
+    assert.ok(start.y < 0.08, `${route.id} should enter from the nostril at the top`);
+    assert.ok(end.y > 0.86, `${route.id} should end near the bottom tissue core`);
+    assert.ok(start.y < end.y, `${route.id} must move downward overall`);
+    assert.ok(routeLength(route.id) >= 0.92, `${route.id} should be long enough for a visible tower-defense march`);
   }
 });
 
-test("first level deploy slots are seven unique enabled touch targets", () => {
+test("first level routes follow the final nasal background lanes", () => {
+  assert.deepEqual(ROUTE_CONFIG.noseLeft.points.map((point) => [point.x, point.y]), [
+    [0.34, 0.045],
+    [0.34, 0.16],
+    [0.29, 0.3],
+    [0.36, 0.43],
+    [0.29, 0.57],
+    [0.38, 0.73],
+    [0.49, 0.91]
+  ]);
+  assert.deepEqual(ROUTE_CONFIG.noseRight.points.map((point) => [point.x, point.y]), [
+    [0.66, 0.045],
+    [0.66, 0.16],
+    [0.71, 0.3],
+    [0.64, 0.43],
+    [0.71, 0.57],
+    [0.62, 0.73],
+    [0.51, 0.91]
+  ]);
+});
+
+test("first level deploy slots align with final background platform centers", () => {
+  assert.deepEqual(ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => [slot.id, slot.x, slot.y]), [
+    ["slot-1", 0.5, 0.21],
+    ["slot-2", 0.31, 0.38],
+    ["slot-3", 0.69, 0.38],
+    ["slot-4", 0.31, 0.6],
+    ["slot-5", 0.69, 0.6],
+    ["slot-6", 0.5, 0.74]
+  ]);
+});
+
+test("first level deploy slots are six unique enabled touch targets", () => {
   const slots = ROUTE_CONFIG.noseLeft.cellSlots;
   const ids = new Set(slots.map((slot) => slot.id));
 
-  assert.equal(slots.length, 7);
-  assert.equal(ids.size, 7);
+  assert.equal(slots.length, 6);
+  assert.equal(ids.size, 6);
   for (const slot of slots) {
     assert.ok(slot.x > 0.08 && slot.x < 0.92);
     assert.ok(slot.y > 0.1 && slot.y < 0.76);
@@ -162,7 +199,7 @@ test("each first level deploy slot accepts a cell deployment", () => {
     assert.ok(cells.deploy("macrophage", slot.id), `${slot.id} should accept deployment`);
   }
 
-  assert.equal(runtime.cells.length, 7);
+  assert.equal(runtime.cells.length, 6);
 });
 
 test("scaled mobile canvas pointer coordinates still hit every deploy slot", () => {
@@ -392,11 +429,20 @@ test("fully taught first level remains winnable after pacing calibration", () =>
   const waves = new WaveSystem("noseFirstLevel", runtime, enemies);
   cells.wireCombat(targeting, projectiles);
 
-  ROUTE_CONFIG.noseLeft.cellSlots.forEach((slot, index) => {
-    assert.ok(cells.deploy(index % 3 === 0 ? "macrophage" : "nk", slot.id));
-  });
+  const plan = [
+    ["macrophage", "slot-2"],
+    ["nk", "slot-3"],
+    ["macrophage", "slot-4"],
+    ["nk", "slot-5"],
+    ["macrophage", "slot-6"],
+    ["nk", "slot-1"]
+  ] as const;
 
-  for (let time = 0; time <= 240000 && runtime.status === "playing"; time += 250) {
+  for (const [kind, slotId] of plan) {
+    assert.ok(cells.deploy(kind, slotId));
+  }
+
+  for (let time = 0; time <= 320000 && runtime.status === "playing"; time += 250) {
     atp.update(time, 250);
     waves.update(time, 250);
     enemies.update(time, 250);
@@ -422,17 +468,16 @@ test("first level remains winnable with reduced ATP economy and staged deploymen
   cells.wireCombat(targeting, projectiles);
 
   const plan = [
+    ["macrophage", "slot-2"],
+    ["nk", "slot-3"],
     ["macrophage", "slot-4"],
     ["nk", "slot-5"],
-    ["macrophage", "slot-7"],
-    ["nk", "slot-2"],
-    ["nk", "slot-6"],
-    ["macrophage", "slot-1"],
-    ["nk", "slot-3"]
+    ["macrophage", "slot-6"],
+    ["nk", "slot-1"]
   ] as const;
   let nextDeployment = 0;
 
-  for (let time = 0; time <= 260000 && runtime.status === "playing"; time += 250) {
+  for (let time = 0; time <= 320000 && runtime.status === "playing"; time += 250) {
     while (nextDeployment < plan.length) {
       const [kind, slotId] = plan[nextDeployment];
       if (!cells.deploy(kind, slotId)) {
@@ -450,5 +495,5 @@ test("first level remains winnable with reduced ATP economy and staged deploymen
 
   assert.equal(runtime.status, "victory");
   assert.ok(runtime.tissueIntegrity > 0);
-  assert.equal(runtime.cells.length, 7);
+  assert.equal(runtime.cells.length, 6);
 });

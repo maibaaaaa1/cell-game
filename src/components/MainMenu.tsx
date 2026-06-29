@@ -57,7 +57,7 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
                 <p className="eyebrow">第一章</p>
                 <h2 className="text-3xl font-black">鼻腔保卫战</h2>
                 <p className="mt-3 text-sm font-semibold leading-6 text-slate-600">
-                  双路线、7个免疫驻点、8波普通入侵与1个Boss波。
+                  双路线、6个免疫驻点、8波普通入侵与1个Boss波。
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">

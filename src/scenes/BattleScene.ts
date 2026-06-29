@@ -386,8 +386,8 @@ export class BattleScene extends Phaser.Scene {
   private drawAirflowLines(): void {
     const graphics = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
     const lanes = [
-      [{ x: 0.43, y: 0.08 }, { x: 0.36, y: 0.28 }, { x: 0.42, y: 0.5 }, { x: 0.38, y: 0.72 }],
-      [{ x: 0.57, y: 0.08 }, { x: 0.64, y: 0.28 }, { x: 0.58, y: 0.5 }, { x: 0.62, y: 0.72 }],
+      ROUTE_CONFIG.noseLeft.points,
+      ROUTE_CONFIG.noseRight.points,
       [{ x: 0.5, y: 0.1 }, { x: 0.5, y: 0.34 }, { x: 0.5, y: 0.58 }, { x: 0.5, y: 0.82 }]
     ];
     lanes.forEach((lane, laneIndex) => {
