@@ -245,7 +245,9 @@ export class BattleScene extends Phaser.Scene {
       this.drawMucosaWalls();
       this.drawTissueTexture();
     }
+    this.drawBackgroundEdgeBlend();
     this.drawBattlefieldAtmosphere(hasFinalBackground);
+    this.drawSceneOcclusion();
     this.drawAirflowLines();
     this.drawRoutes();
     this.drawCore();
@@ -255,11 +257,11 @@ export class BattleScene extends Phaser.Scene {
   private drawBackgroundImage(textureKey: string, opacity: number): void {
     const image = this.addToBattlefieldLayer("backgroundLayer", this.add.image(this.centerX, this.centerY, textureKey).setAlpha(opacity));
     this.applyCoverCrop(image, textureKey);
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xf5fffb, 0.12));
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x071123, 0.08));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xffedf2, 0.1));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x18071a, 0.12));
     this.addToBattlefieldLayer(
       "terrainLayer",
-      this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.04).setStrokeStyle(2, 0x8be8ff, 0.12)
+      this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.025).setStrokeStyle(2, 0x8be8ff, 0.1)
     );
   }
 
@@ -301,6 +303,23 @@ export class BattleScene extends Phaser.Scene {
     this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.width * 0.92, this.height * 0.5, this.width * 0.16, this.height * 0.9, 0xffffff, 0.09));
   }
 
+  private drawBackgroundEdgeBlend(): void {
+    const leftWall = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
+    leftWall.fillStyle(0x6d173b, 0.46);
+    leftWall.fillEllipse(-this.width * 0.05, this.height * 0.52, this.width * 0.42, this.height * 1.18);
+    leftWall.fillStyle(0xff8fb1, 0.16);
+    leftWall.fillEllipse(this.width * 0.04, this.height * 0.48, this.width * 0.22, this.height * 1.0);
+
+    const rightWall = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
+    rightWall.fillStyle(0x6d173b, 0.44);
+    rightWall.fillEllipse(this.width * 1.05, this.height * 0.52, this.width * 0.42, this.height * 1.18);
+    rightWall.fillStyle(0xff8fb1, 0.14);
+    rightWall.fillEllipse(this.width * 0.96, this.height * 0.48, this.width * 0.22, this.height * 1.0);
+
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.height * 0.09, this.width, this.height * 0.2, 0x071123, 0.1));
+    this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.18, this.width * 0.78, this.height * 0.2, 0x67e8f9, 0.12));
+  }
+
   private drawBattlefieldAtmosphere(hasFinalBackground: boolean): void {
     if (hasFinalBackground) {
       this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.16, this.width * 0.92, this.height * 0.22, 0x43e0c2, 0.1));
@@ -314,6 +333,15 @@ export class BattleScene extends Phaser.Scene {
     vignette.fillRect(0, 0, this.width, this.height);
     vignette.fillStyle(0xffffff, hasFinalBackground ? 0.08 : 0.08);
     vignette.fillEllipse(this.centerX, this.centerY * 1.03, this.width * 0.82, this.height * 0.72);
+  }
+
+  private drawSceneOcclusion(): void {
+    const mist = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
+    mist.fillStyle(0xffd6de, 0.1);
+    mist.fillEllipse(this.centerX, this.height * 0.54, this.width * 0.62, this.height * 0.78);
+    mist.fillStyle(0x071123, 0.18);
+    mist.fillRect(0, 0, this.width * 0.08, this.height);
+    mist.fillRect(this.width * 0.92, 0, this.width * 0.08, this.height);
   }
 
   private drawTissueTexture(): void {
@@ -374,13 +402,35 @@ export class BattleScene extends Phaser.Scene {
     const inner = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
     const highlight = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
 
-    this.drawFleshyRouteBed(route.points, shadow, base);
-    this.strokeRoutePath(inner, route.points, 20, 0x5fe7ff, 0.18);
-    this.strokeRoutePath(highlight, route.points, 8, 0xfff1f4, 0.25, -5, -6);
-    this.strokeRoutePath(highlight, route.points, 5, 0x4ad6ee, 0.18, 5, 5);
-    this.strokeRoutePath(highlight, route.points, 2, 0xa7f3d0, 0.26);
+    this.drawIntegratedMucosaCorridor(route.points, shadow, base);
+    this.strokeRoutePath(inner, route.points, 12, 0x5fe7ff, 0.12);
+    this.strokeRoutePath(highlight, route.points, 5, 0xfff1f4, 0.16, -4, -5);
+    this.strokeRoutePath(highlight, route.points, 3, 0x4ad6ee, 0.14, 4, 5);
+    this.strokeRoutePath(highlight, route.points, 2, 0xa7f3d0, 0.18);
     this.drawRouteChannelGlow(route.points);
     this.drawRouteEnergyFlow(route.points);
+  }
+
+  private drawIntegratedMucosaCorridor(
+    points: Array<{ x: number; y: number }>,
+    shadow: Phaser.GameObjects.Graphics,
+    base: Phaser.GameObjects.Graphics
+  ): void {
+    this.strokeRoutePath(shadow, points, 70, 0x170514, 0.22, 0, 12);
+    this.strokeRoutePath(shadow, points, 62, 0x5b1233, 0.18, 0, 5);
+    this.strokeRoutePath(base, points, 58, 0x8f3151, 0.22);
+    this.strokeRoutePath(base, points, 49, 0xdb7488, 0.3);
+    this.strokeRoutePath(base, points, 38, 0xffa9b8, 0.23);
+    this.strokeRoutePath(base, points, 25, 0xffd7df, 0.12);
+
+    for (const point of points) {
+      const world = this.toVisualWorld(point.x, point.y);
+      const width = this.perspectiveWidthForY(point.y, 52);
+      base.fillStyle(0xdb7488, 0.2);
+      base.fillEllipse(world.x, world.y + 3, width * 0.95, width * 0.36);
+      base.fillStyle(0xffedf2, 0.1);
+      base.fillEllipse(world.x, world.y - 5, width * 0.58, width * 0.16);
+    }
   }
 
   private drawFleshyRouteBed(
@@ -400,14 +450,14 @@ export class BattleScene extends Phaser.Scene {
     for (const point of points) {
       const world = this.toVisualWorld(point.x, point.y);
       const radius = this.perspectiveWidthForY(point.y, 24);
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 1.1, radius * 0.42, 0x43e0c2, 0.07));
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.62, radius * 0.2, 0xffffff, 0.05));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 1.0, radius * 0.32, 0x43e0c2, 0.04));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.55, radius * 0.16, 0xffffff, 0.035));
     }
   }
 
   private drawRouteEnergyFlow(points: Array<{ x: number; y: number }>): void {
     const energy = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
-    energy.lineStyle(2, 0x43e0c2, 0.28);
+    energy.lineStyle(2, 0x43e0c2, 0.16);
     points.forEach((point, index) => {
       const world = this.toVisualWorld(point.x, point.y);
       if (index === 0) {
@@ -507,8 +557,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawBiologicalPlatform(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 13, radius * 3.8, radius * 1.28, 0x050816, 0.32));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 7, radius * 3.18, radius * 1.02, 0x8d3859, 0.46));
+    this.drawPlatformSocket(x, y, radius);
     this.drawImmunePlatformRim(x, y, radius);
     const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 3, radius * 0.72, 0x22d3ee, 0.34));
     view.setStrokeStyle(3, 0xdffbff, 0.72);
@@ -522,6 +571,12 @@ export class BattleScene extends Phaser.Scene {
       ease: "Sine.easeInOut"
     });
     return view;
+  }
+
+  private drawPlatformSocket(x: number, y: number, radius: number): void {
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 16, radius * 4.15, radius * 1.35, 0x050816, 0.36));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 9, radius * 3.45, radius * 1.1, 0x6d173b, 0.5));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 5, radius * 3.18, radius * 0.95, 0xff9eaa, 0.24));
   }
 
   private drawImmunePlatformRim(x: number, y: number, radius: number): void {
@@ -648,21 +703,9 @@ export class BattleScene extends Phaser.Scene {
     this.addToBattlefieldLayer("shadowLayer", shadow);
     shadow.setPosition(x, y + Number(shadow.getData("offsetY") ?? 0));
     const glow = this.add.ellipse(0, 1, size * 0.72, size * 0.2, cell.kind === "macrophage" ? 0xffb454 : 0x8b5cf6, 0.12);
-    const visual = asset && this.textures.exists(asset.sprite.key)
-      ? this.createGroundedImage(asset)
-      : this.createCellFallbackShape(cell.kind, asset);
+    const visual = this.createBattleCellActor(cell.kind, asset);
     visual.setName("visual");
-    const label = this.add
-      .text(0, -size * 0.18, cell.kind === "macrophage" ? "巨噬" : "NK", {
-        fontFamily: "system-ui",
-        fontSize: "10px",
-        fontStyle: "900",
-        color: "#ffffff",
-        backgroundColor: "rgba(7,17,35,0.46)",
-        padding: { left: 4, right: 4, top: 1, bottom: 1 }
-      })
-      .setOrigin(0.5);
-    const view = this.add.container(x, y, [glow, visual, label]);
+    const view = this.add.container(x, y, [glow, visual]);
     view.setData("shadow", shadow);
     this.addToBattlefieldLayer("unitLayer", view);
     return view;
@@ -686,9 +729,9 @@ export class BattleScene extends Phaser.Scene {
       aura.setStrokeStyle(3, 0xff9f1c, 0.18);
       children.push(aura);
     }
-    const visual = asset && this.textures.exists(asset.sprite.key)
-      ? this.createGroundedImage(asset)
-      : this.createEnemyFallbackShape(enemy.kind, asset, radius);
+    const visual = enemy.kind === "mutantVirusCluster"
+      ? this.createBossBattleActor(asset)
+      : this.createBattleEnemyActor(enemy.kind, asset, radius);
     visual.setName("visual");
     if (enemy.kind === "fastVirus") {
       visual.setRotation(0.16);
@@ -763,6 +806,78 @@ export class BattleScene extends Phaser.Scene {
       .image(0, 0, asset.sprite.key)
       .setOrigin(0.5, asset.originY)
       .setDisplaySize(asset.displayWidth ?? asset.displaySize, asset.displayHeight ?? asset.displaySize);
+  }
+
+  private createBattleCellActor(kind: CellKind, asset?: VisualAssetConfig): Phaser.GameObjects.Container {
+    const size = asset?.displaySize ?? (kind === "macrophage" ? 72 : 68);
+    const rootY = -size * ((asset?.originY ?? 0.84) - 0.5);
+    const actor = this.add.container(0, rootY);
+    const color = kind === "macrophage" ? 0xff9f1c : 0x7c3aed;
+    const dark = kind === "macrophage" ? 0x7c2d12 : 0x312e81;
+    const body = kind === "macrophage"
+      ? this.add.circle(0, 0, size * 0.28, color, 1)
+      : this.add.star(0, 0, 8, size * 0.16, size * 0.31, color, 1);
+    body.setStrokeStyle(4, 0xfff7ed, 0.72);
+    actor.add(body);
+    actor.add(this.add.circle(-size * 0.08, -size * 0.1, size * 0.08, 0xffffff, 0.42));
+    actor.add(this.add.circle(size * 0.06, -size * 0.04, size * 0.06, 0xffffff, 0.3));
+    this.drawCellArmorDetails(actor, kind, size, dark);
+    actor.add(this.add.ellipse(0, size * 0.24, size * 0.62, size * 0.14, 0x071123, 0.12));
+    return actor;
+  }
+
+  private drawCellArmorDetails(actor: Phaser.GameObjects.Container, kind: CellKind, size: number, dark: number): void {
+    if (kind === "macrophage") {
+      const shield = this.add.ellipse(size * 0.28, size * 0.06, size * 0.27, size * 0.38, 0x475569, 0.92);
+      shield.setStrokeStyle(3, 0xffd68a, 0.8);
+      actor.add(shield);
+      actor.add(this.add.circle(size * 0.28, size * 0.04, size * 0.08, 0xffc44d, 0.95));
+      actor.add(this.add.rectangle(-size * 0.28, size * 0.02, size * 0.22, size * 0.13, dark, 0.92).setRotation(-0.35));
+      actor.add(this.add.circle(-size * 0.38, -size * 0.03, size * 0.09, 0xffb454, 0.95));
+      return;
+    }
+    actor.add(this.add.ellipse(-size * 0.25, size * 0.03, size * 0.16, size * 0.46, 0x312e81, 0.9).setRotation(-0.7));
+    actor.add(this.add.ellipse(size * 0.25, size * 0.03, size * 0.16, size * 0.46, 0x312e81, 0.9).setRotation(0.7));
+    actor.add(this.add.circle(-size * 0.1, -size * 0.05, size * 0.045, 0xe0e7ff, 0.9));
+    actor.add(this.add.circle(size * 0.1, -size * 0.05, size * 0.045, 0xe0e7ff, 0.9));
+    actor.add(this.add.ellipse(0, size * 0.12, size * 0.3, size * 0.1, dark, 0.82));
+  }
+
+  private createBattleEnemyActor(kind: EnemyKind, asset: VisualAssetConfig | undefined, radius: number): Phaser.GameObjects.Container {
+    const size = asset?.displaySize ?? radius * 2;
+    const y = -size * ((asset?.originY ?? 0.76) - 0.5);
+    const actor = this.add.container(0, y);
+    if (kind === "bacteria") {
+      const body = this.add.ellipse(0, 0, radius * 2.15, radius * 1.42, 0x86a93b, 1);
+      body.setStrokeStyle(3, 0xf4ffd2, 0.75);
+      actor.add(body);
+      actor.add(this.add.circle(-radius * 0.36, -radius * 0.18, radius * 0.16, 0xd9f99d, 0.8));
+      actor.add(this.add.circle(radius * 0.28, radius * 0.14, radius * 0.12, 0x365314, 0.42));
+      return actor;
+    }
+    const color = kind === "fastVirus" ? 0xff3d2e : kind === "miniVirus" ? 0xff735c : 0xd7192f;
+    const spikes = kind === "fastVirus" ? 10 : 9;
+    const body = this.add.star(0, 0, spikes, radius * 0.5, radius, color, 1);
+    body.setStrokeStyle(3, 0xffe4e6, 0.82);
+    actor.add(body);
+    actor.add(this.add.circle(-radius * 0.2, -radius * 0.2, radius * 0.16, 0xffffff, 0.38));
+    actor.add(this.add.circle(radius * 0.18, radius * 0.12, radius * 0.1, 0x7f1d1d, 0.36));
+    return actor;
+  }
+
+  private createBossBattleActor(asset?: VisualAssetConfig): Phaser.GameObjects.Container {
+    const size = asset?.displaySize ?? 116;
+    const y = -size * ((asset?.originY ?? 0.8) - 0.5);
+    const actor = this.add.container(0, y);
+    const body = this.add.star(0, 0, 15, size * 0.27, size * 0.48, 0x6d28d9, 1);
+    body.setStrokeStyle(5, 0xff6b6b, 0.78);
+    actor.add(body);
+    actor.add(this.add.circle(0, size * 0.02, size * 0.24, 0xef4444, 0.72));
+    actor.add(this.add.circle(0, size * 0.02, size * 0.13, 0xffd166, 0.9));
+    actor.add(this.add.circle(-size * 0.14, -size * 0.1, size * 0.045, 0xfff7ed, 0.9));
+    actor.add(this.add.circle(size * 0.14, -size * 0.1, size * 0.045, 0xfff7ed, 0.9));
+    actor.add(this.add.ellipse(0, size * 0.24, size * 0.72, size * 0.16, 0x071123, 0.15));
+    return actor;
   }
 
   private createFastVirusTrail(asset: VisualAssetConfig): Phaser.GameObjects.Ellipse {

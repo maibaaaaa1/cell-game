@@ -157,7 +157,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
         <div className="battle-canvas-frame rounded-2xl p-2">
           <div
             ref={hostRef}
-            className={`phaser-host relative w-full overflow-hidden rounded-xl bg-white ${
+            className={`phaser-host relative overflow-hidden rounded-xl ${
               state.stormActive ? "storm-border" : ""
             }`}
             onDragOver={(event) => event.preventDefault()}

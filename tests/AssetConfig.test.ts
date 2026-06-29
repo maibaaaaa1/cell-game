@@ -160,6 +160,12 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("drawBiologicalPlatform"));
   assert.ok(source.includes("drawImmunePlatformRim"));
   assert.ok(source.includes("drawLifeCoreShield"));
+  assert.ok(source.includes("drawIntegratedMucosaCorridor"));
+  assert.ok(source.includes("drawPlatformSocket"));
+  assert.ok(source.includes("createBattleCellActor"));
+  assert.ok(source.includes("createBattleEnemyActor"));
+  assert.ok(source.includes("createBossBattleActor"));
+  assert.ok(source.includes("drawCellArmorDetails"));
   assert.ok(source.includes("drawTissueTexture"));
   assert.ok(source.includes("drawMucosaWalls"));
   assert.ok(source.includes("drawAirflowLines"));
@@ -173,6 +179,22 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("playBossSplitFlash"));
   assert.ok(!source.includes("cell.range ="));
   assert.ok(!source.includes("enemy.speed ="));
+});
+
+test("first level visual reconstruction avoids white gutters and raw white-backed sprites", () => {
+  const scene = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
+  const shell = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.ok(scene.includes("drawBackgroundEdgeBlend"));
+  assert.ok(scene.includes("drawSceneOcclusion"));
+  assert.ok(scene.includes("createBattleCellActor"));
+  assert.ok(scene.includes("createBattleEnemyActor"));
+  assert.ok(scene.includes("createBossBattleActor"));
+  assert.ok(shell.includes("phaser-host relative overflow-hidden rounded-xl"));
+  assert.ok(!shell.includes("phaser-host relative w-full overflow-hidden rounded-xl bg-white"));
+  assert.match(styles, /\.phaser-host\s*{[^}]*aspect-ratio: 7 \/ 10;/s);
+  assert.match(styles, /\.phaser-host\s*{[^}]*background:/s);
 });
 
 test("battle scene routes battlefield objects through dedicated 2.5D layers", () => {
