@@ -19,8 +19,8 @@ test("asset config contains first level required sprite and icon paths", () => {
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.image.key, "bg_battle_01_nasal");
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.image.path, "/assets/images/backgrounds/bg_battle_01_nasal.png");
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.fallback, "nasal_mucosa_2_5d");
-  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity >= 0.55);
-  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity <= 0.75);
+  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity >= 0.88);
+  assert.ok(ASSET_CONFIG.backgrounds.battle01Nasal.opacity <= 1);
   assert.equal(ASSET_CONFIG.backgrounds.battle01Nasal.enabled, true);
   assert.equal(
     ASSET_CONFIG.backgrounds.battle01Nasal.referencePath,
@@ -188,12 +188,14 @@ test("first level visual reconstruction avoids white gutters and raw white-backe
 
   assert.ok(scene.includes("drawBackgroundEdgeBlend"));
   assert.ok(scene.includes("drawSceneOcclusion"));
+  assert.ok(scene.includes("drawSubtleLaneGuides"));
   assert.ok(scene.includes("createBattleCellActor"));
   assert.ok(scene.includes("createBattleEnemyActor"));
   assert.ok(scene.includes("createBossBattleActor"));
   assert.ok(shell.includes("phaser-host relative overflow-hidden rounded-xl"));
   assert.ok(!shell.includes("phaser-host relative w-full overflow-hidden rounded-xl bg-white"));
-  assert.match(styles, /\.phaser-host\s*{[^}]*aspect-ratio: 7 \/ 10;/s);
+  assert.match(styles, /\.phaser-host\s*{[^}]*flex: 1 1 auto;/s);
+  assert.match(styles, /\.phaser-host\s*{[^}]*width: 100%;/s);
   assert.match(styles, /\.phaser-host\s*{[^}]*background:/s);
 });
 

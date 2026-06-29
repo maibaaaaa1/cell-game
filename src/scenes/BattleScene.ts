@@ -257,11 +257,11 @@ export class BattleScene extends Phaser.Scene {
   private drawBackgroundImage(textureKey: string, opacity: number): void {
     const image = this.addToBattlefieldLayer("backgroundLayer", this.add.image(this.centerX, this.centerY, textureKey).setAlpha(opacity));
     this.applyCoverCrop(image, textureKey);
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xffedf2, 0.1));
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x18071a, 0.12));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xffedf2, 0.035));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x18071a, 0.035));
     this.addToBattlefieldLayer(
       "terrainLayer",
-      this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.025).setStrokeStyle(2, 0x8be8ff, 0.1)
+      this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.01).setStrokeStyle(2, 0x8be8ff, 0.06)
     );
   }
 
@@ -305,41 +305,41 @@ export class BattleScene extends Phaser.Scene {
 
   private drawBackgroundEdgeBlend(): void {
     const leftWall = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
-    leftWall.fillStyle(0x6d173b, 0.46);
+    leftWall.fillStyle(0x6d173b, 0.18);
     leftWall.fillEllipse(-this.width * 0.05, this.height * 0.52, this.width * 0.42, this.height * 1.18);
-    leftWall.fillStyle(0xff8fb1, 0.16);
+    leftWall.fillStyle(0xff8fb1, 0.06);
     leftWall.fillEllipse(this.width * 0.04, this.height * 0.48, this.width * 0.22, this.height * 1.0);
 
     const rightWall = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
-    rightWall.fillStyle(0x6d173b, 0.44);
+    rightWall.fillStyle(0x6d173b, 0.18);
     rightWall.fillEllipse(this.width * 1.05, this.height * 0.52, this.width * 0.42, this.height * 1.18);
-    rightWall.fillStyle(0xff8fb1, 0.14);
+    rightWall.fillStyle(0xff8fb1, 0.06);
     rightWall.fillEllipse(this.width * 0.96, this.height * 0.48, this.width * 0.22, this.height * 1.0);
 
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.height * 0.09, this.width, this.height * 0.2, 0x071123, 0.1));
-    this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.18, this.width * 0.78, this.height * 0.2, 0x67e8f9, 0.12));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.height * 0.09, this.width, this.height * 0.2, 0x071123, 0.035));
+    this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.18, this.width * 0.78, this.height * 0.2, 0x67e8f9, 0.045));
   }
 
   private drawBattlefieldAtmosphere(hasFinalBackground: boolean): void {
     if (hasFinalBackground) {
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.16, this.width * 0.92, this.height * 0.22, 0x43e0c2, 0.1));
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.58, this.width * 0.72, this.height * 0.62, 0xffd6de, 0.08));
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(-this.width * 0.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.2));
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.width * 1.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.18));
-      this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x071123, 0.06));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.16, this.width * 0.92, this.height * 0.22, 0x43e0c2, 0.05));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.58, this.width * 0.72, this.height * 0.62, 0xffd6de, 0.035));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(-this.width * 0.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.08));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.width * 1.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.08));
+      this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x071123, 0.025));
     }
     const vignette = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
-    vignette.fillStyle(0x071123, hasFinalBackground ? 0.16 : 0.035);
+    vignette.fillStyle(0x071123, hasFinalBackground ? 0.06 : 0.035);
     vignette.fillRect(0, 0, this.width, this.height);
-    vignette.fillStyle(0xffffff, hasFinalBackground ? 0.08 : 0.08);
+    vignette.fillStyle(0xffffff, hasFinalBackground ? 0.03 : 0.08);
     vignette.fillEllipse(this.centerX, this.centerY * 1.03, this.width * 0.82, this.height * 0.72);
   }
 
   private drawSceneOcclusion(): void {
     const mist = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
-    mist.fillStyle(0xffd6de, 0.1);
+    mist.fillStyle(0xffd6de, 0.035);
     mist.fillEllipse(this.centerX, this.height * 0.54, this.width * 0.62, this.height * 0.78);
-    mist.fillStyle(0x071123, 0.18);
+    mist.fillStyle(0x071123, 0.06);
     mist.fillRect(0, 0, this.width * 0.08, this.height);
     mist.fillRect(this.width * 0.92, 0, this.width * 0.08, this.height);
   }
@@ -402,11 +402,11 @@ export class BattleScene extends Phaser.Scene {
     const inner = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
     const highlight = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
 
-    this.drawIntegratedMucosaCorridor(route.points, shadow, base);
-    this.strokeRoutePath(inner, route.points, 12, 0x5fe7ff, 0.12);
-    this.strokeRoutePath(highlight, route.points, 5, 0xfff1f4, 0.16, -4, -5);
-    this.strokeRoutePath(highlight, route.points, 3, 0x4ad6ee, 0.14, 4, 5);
-    this.strokeRoutePath(highlight, route.points, 2, 0xa7f3d0, 0.18);
+    this.drawSubtleLaneGuides(route.points, shadow, base);
+    this.strokeRoutePath(inner, route.points, 7, 0x5fe7ff, 0.06);
+    this.strokeRoutePath(highlight, route.points, 3, 0xfff1f4, 0.07, -3, -4);
+    this.strokeRoutePath(highlight, route.points, 2, 0x4ad6ee, 0.07, 3, 4);
+    this.strokeRoutePath(highlight, route.points, 1, 0xa7f3d0, 0.08);
     this.drawRouteChannelGlow(route.points);
     this.drawRouteEnergyFlow(route.points);
   }
@@ -433,6 +433,23 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  private drawSubtleLaneGuides(
+    points: Array<{ x: number; y: number }>,
+    shadow: Phaser.GameObjects.Graphics,
+    base: Phaser.GameObjects.Graphics
+  ): void {
+    this.strokeRoutePath(shadow, points, 38, 0x170514, 0.08, 0, 8);
+    this.strokeRoutePath(base, points, 32, 0xff9aad, 0.055);
+    this.strokeRoutePath(base, points, 20, 0xffd2da, 0.045);
+
+    for (const point of points) {
+      const world = this.toVisualWorld(point.x, point.y);
+      const width = this.perspectiveWidthForY(point.y, 34);
+      base.fillStyle(0xffedf2, 0.035);
+      base.fillEllipse(world.x, world.y - 3, width * 0.62, width * 0.15);
+    }
+  }
+
   private drawFleshyRouteBed(
     points: Array<{ x: number; y: number }>,
     shadow: Phaser.GameObjects.Graphics,
@@ -450,14 +467,14 @@ export class BattleScene extends Phaser.Scene {
     for (const point of points) {
       const world = this.toVisualWorld(point.x, point.y);
       const radius = this.perspectiveWidthForY(point.y, 24);
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 1.0, radius * 0.32, 0x43e0c2, 0.04));
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.55, radius * 0.16, 0xffffff, 0.035));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 0.8, radius * 0.26, 0x43e0c2, 0.025));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.42, radius * 0.13, 0xffffff, 0.025));
     }
   }
 
   private drawRouteEnergyFlow(points: Array<{ x: number; y: number }>): void {
     const energy = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
-    energy.lineStyle(2, 0x43e0c2, 0.16);
+    energy.lineStyle(2, 0x43e0c2, 0.08);
     points.forEach((point, index) => {
       const world = this.toVisualWorld(point.x, point.y);
       if (index === 0) {

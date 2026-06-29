@@ -119,7 +119,7 @@ export const ASSET_CONFIG = {
     battle01Nasal: {
       image: { key: "bg_battle_01_nasal", path: "/assets/images/backgrounds/bg_battle_01_nasal.png" },
       fallback: "nasal_mucosa_2_5d",
-      opacity: 0.72,
+      opacity: 0.94,
       optional: true,
       enabled: true,
       referencePath: "/assets/images/backgrounds/reference/bg_battle_01_nasal_concept_reference.png"

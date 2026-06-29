@@ -523,11 +523,10 @@ button {
 }
 
 .phaser-host {
-  flex: 0 1 auto;
-  aspect-ratio: 7 / 10;
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
-  max-width: 100%;
+  width: 100%;
   background:
     radial-gradient(circle at 50% 12%, rgba(67, 224, 194, 0.2), transparent 34%),
     linear-gradient(180deg, #371227 0%, #7b2947 44%, #210d25 100%);
