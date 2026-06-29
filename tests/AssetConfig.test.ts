@@ -155,8 +155,11 @@ test("battle scene keeps sprite scaling visual-only and adds 2.5D presentation c
   assert.ok(source.includes("createSoftShadow"));
   assert.ok(source.includes("drawRouteChannel"));
   assert.ok(source.includes("perspectiveWidthForY"));
+  assert.ok(source.includes("drawFleshyRouteBed"));
   assert.ok(source.includes("drawRouteChannelGlow"));
   assert.ok(source.includes("drawBiologicalPlatform"));
+  assert.ok(source.includes("drawImmunePlatformRim"));
+  assert.ok(source.includes("drawLifeCoreShield"));
   assert.ok(source.includes("drawTissueTexture"));
   assert.ok(source.includes("drawMucosaWalls"));
   assert.ok(source.includes("drawAirflowLines"));

@@ -359,9 +359,10 @@ button {
   overflow: hidden;
   padding: max(0.4rem, env(safe-area-inset-top)) 0.75rem max(0.4rem, env(safe-area-inset-bottom));
   background:
-    radial-gradient(circle at 14% 8%, rgba(60, 203, 255, 0.24), transparent 28%),
-    radial-gradient(circle at 86% 0%, rgba(67, 224, 194, 0.2), transparent 30%),
-    linear-gradient(180deg, #fffdf8 0%, #f1fbff 100%);
+    radial-gradient(circle at 50% 0%, rgba(70, 225, 255, 0.28), transparent 34%),
+    radial-gradient(circle at 12% 40%, rgba(255, 90, 110, 0.2), transparent 28%),
+    radial-gradient(circle at 88% 42%, rgba(139, 92, 246, 0.18), transparent 28%),
+    linear-gradient(180deg, #12071b 0%, #1f0d22 48%, #070b18 100%);
 }
 
 .phaser-host canvas {
@@ -379,23 +380,107 @@ button {
 
 .battle-hud {
   flex: 0 0 auto;
-  border: 1px solid var(--immune-border);
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 12px 30px rgba(7, 17, 35, 0.1);
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(214, 236, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(32, 27, 48, 0.88), rgba(10, 14, 31, 0.86)),
+    radial-gradient(circle at 50% 0%, rgba(70, 225, 255, 0.22), transparent 55%);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(18px);
 }
 
 .battle-hud-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(8.8rem, 1fr) minmax(0, 1.55fr) auto;
   align-items: stretch;
   gap: 0.5rem;
 }
 
+.battle-title-chip {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  padding: 0.45rem 0.55rem;
+  color: white;
+  box-shadow: inset 0 0 20px rgba(60, 203, 255, 0.08);
+}
+
+.battle-title-emblem {
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: radial-gradient(circle at 50% 28%, #ffebae, #dc5f44 56%, #6d1f38 100%);
+  box-shadow: 0 0 16px rgba(255, 159, 28, 0.36), inset 0 0 0 2px rgba(255, 255, 255, 0.38);
+}
+
+.battle-title-emblem::before {
+  content: "";
+  width: 1rem;
+  height: 1.25rem;
+  clip-path: polygon(50% 0, 88% 16%, 78% 72%, 50% 100%, 22% 72%, 12% 16%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(118, 247, 255, 0.82));
+  box-shadow: 0 0 12px rgba(118, 247, 255, 0.65);
+}
+
+.battle-field-title {
+  display: block;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 950;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-title-chip small {
+  display: block;
+  overflow: hidden;
+  color: rgba(226, 232, 240, 0.76);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .battle-hud-stats > div {
   min-width: 0;
-  border: 1px solid rgba(60, 203, 255, 0.16);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(241, 251, 255, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.06));
+  color: #fff;
+  box-shadow: inset 0 0 18px rgba(60, 203, 255, 0.08);
+}
+
+.battle-hud-stats .text-xs {
+  color: rgba(226, 232, 240, 0.74);
+  font-weight: 900;
+}
+
+.battle-hud-icon {
+  display: inline-block;
+  width: 1.28rem;
+  height: 1.28rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(60, 203, 255, 0.36), inset 0 0 8px rgba(255, 255, 255, 0.42);
+}
+
+.battle-hud-icon.heart {
+  background: radial-gradient(circle at 36% 32%, #fff, #ff5a8d 34%, #b91c4c 80%);
+}
+
+.battle-hud-icon.atp {
+  background: radial-gradient(circle at 36% 32%, #e0fbff, #3ccbff 38%, #075985 82%);
+}
+
+.battle-hud-icon.wave {
+  background: radial-gradient(circle at 36% 32%, #f5f3ff, #8b5cf6 42%, #3b0764 84%);
 }
 
 .pause-toggle-button {
@@ -412,11 +497,11 @@ button {
   align-items: stretch;
   justify-content: center;
   padding: 0.4rem;
-  border: 1px solid var(--immune-border);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(235, 252, 255, 0.64)),
+    linear-gradient(180deg, rgba(8, 13, 29, 0.78), rgba(20, 8, 28, 0.74)),
     radial-gradient(circle at 50% 8%, rgba(60, 203, 255, 0.16), transparent 36%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.68), var(--immune-shadow);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 22px 52px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(12px);
 }
 
@@ -425,10 +510,16 @@ button {
   position: relative;
   z-index: 10;
   padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
-  border: 1px solid var(--immune-border);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 -12px 34px rgba(7, 17, 35, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(24, 28, 46, 0.92), rgba(7, 11, 24, 0.94)),
+    radial-gradient(circle at 50% 0%, rgba(60, 203, 255, 0.16), transparent 64%);
+  box-shadow: 0 -16px 42px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(16px);
+}
+
+.battle-action-deck {
+  color: white;
 }
 
 .phaser-host {
@@ -448,9 +539,11 @@ button {
 }
 
 .cell-card {
-  border-color: rgba(60, 203, 255, 0.22);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 251, 255, 0.82));
-  box-shadow: 0 8px 20px rgba(7, 17, 35, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(223, 235, 255, 0.86)),
+    radial-gradient(circle at 22% 12%, rgba(60, 203, 255, 0.22), transparent 46%);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
 .cell-card:hover {
@@ -459,8 +552,10 @@ button {
 
 .selected-card {
   border-color: var(--immune-green);
-  background: linear-gradient(180deg, rgba(236, 253, 245, 0.96), rgba(224, 251, 255, 0.88));
-  box-shadow: 0 0 0 2px rgba(67, 224, 194, 0.22), 0 12px 24px rgba(7, 17, 35, 0.1);
+  background:
+    linear-gradient(180deg, rgba(246, 253, 255, 0.98), rgba(224, 242, 254, 0.94)),
+    radial-gradient(circle at 45% 0%, rgba(67, 224, 194, 0.28), transparent 58%);
+  box-shadow: 0 0 0 2px rgba(67, 224, 194, 0.28), 0 0 24px rgba(60, 203, 255, 0.28), 0 12px 28px rgba(0, 0, 0, 0.26);
 }
 
 .unaffordable-card {
@@ -539,12 +634,24 @@ button {
   display: none;
 }
 
+.cell-card-name {
+  letter-spacing: 0;
+}
+
+.cell-card-price {
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.9)) !important;
+  color: #1d4ed8 !important;
+}
+
 .battle-status-message {
   max-height: 46px;
   overflow: hidden;
-  border: 1px solid rgba(60, 203, 255, 0.22);
-  background: linear-gradient(135deg, rgba(7, 17, 35, 0.96), rgba(10, 48, 73, 0.94));
-  box-shadow: inset 0 0 16px rgba(60, 203, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(7, 17, 35, 0.96), rgba(20, 21, 40, 0.94)),
+    radial-gradient(circle at 14% 0%, rgba(67, 224, 194, 0.16), transparent 52%);
+  box-shadow: inset 0 0 18px rgba(60, 203, 255, 0.12), 0 10px 22px rgba(0, 0, 0, 0.24);
 }
 
 .landscape-warning {

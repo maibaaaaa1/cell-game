@@ -303,14 +303,16 @@ export class BattleScene extends Phaser.Scene {
 
   private drawBattlefieldAtmosphere(hasFinalBackground: boolean): void {
     if (hasFinalBackground) {
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.22, this.width * 0.95, this.height * 0.28, 0x43e0c2, 0.08));
-      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.74, this.width * 0.86, this.height * 0.34, 0xffeef2, 0.08));
-      this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xeafffb, 0.05));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.16, this.width * 0.92, this.height * 0.22, 0x43e0c2, 0.1));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.centerX, this.height * 0.58, this.width * 0.72, this.height * 0.62, 0xffd6de, 0.08));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(-this.width * 0.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.2));
+      this.addToBattlefieldLayer("terrainLayer", this.add.ellipse(this.width * 1.03, this.centerY, this.width * 0.36, this.height * 1.08, 0x7f1d4d, 0.18));
+      this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x071123, 0.06));
     }
     const vignette = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
-    vignette.fillStyle(0x071123, hasFinalBackground ? 0.08 : 0.035);
+    vignette.fillStyle(0x071123, hasFinalBackground ? 0.16 : 0.035);
     vignette.fillRect(0, 0, this.width, this.height);
-    vignette.fillStyle(0xffffff, hasFinalBackground ? 0.06 : 0.08);
+    vignette.fillStyle(0xffffff, hasFinalBackground ? 0.08 : 0.08);
     vignette.fillEllipse(this.centerX, this.centerY * 1.03, this.width * 0.82, this.height * 0.72);
   }
 
@@ -372,25 +374,34 @@ export class BattleScene extends Phaser.Scene {
     const inner = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
     const highlight = this.addToBattlefieldLayer("routeGlowLayer", this.add.graphics());
 
-    this.strokeRoutePath(shadow, route.points, 74, 0x1f2937, 0.2, 0, 11);
-    this.strokeRoutePath(shadow, route.points, 63, 0x7c2d12, 0.1, 0, 5);
-    this.strokeRoutePath(base, route.points, 58, 0xf5c2c7, 0.28);
-    this.strokeRoutePath(base, route.points, 50, 0x43e0c2, 0.24);
-    this.strokeRoutePath(base, route.points, 38, 0xf7fff9, 0.28);
-    this.strokeRoutePath(inner, route.points, 23, 0x72f6e7, 0.28);
-    this.strokeRoutePath(highlight, route.points, 8, 0xffffff, 0.24, -4, -5);
-    this.strokeRoutePath(highlight, route.points, 4, 0x00a9c8, 0.22, 5, 5);
-    this.strokeRoutePath(highlight, route.points, 2, 0x43e0c2, 0.3);
+    this.drawFleshyRouteBed(route.points, shadow, base);
+    this.strokeRoutePath(inner, route.points, 20, 0x5fe7ff, 0.18);
+    this.strokeRoutePath(highlight, route.points, 8, 0xfff1f4, 0.25, -5, -6);
+    this.strokeRoutePath(highlight, route.points, 5, 0x4ad6ee, 0.18, 5, 5);
+    this.strokeRoutePath(highlight, route.points, 2, 0xa7f3d0, 0.26);
     this.drawRouteChannelGlow(route.points);
     this.drawRouteEnergyFlow(route.points);
+  }
+
+  private drawFleshyRouteBed(
+    points: Array<{ x: number; y: number }>,
+    shadow: Phaser.GameObjects.Graphics,
+    base: Phaser.GameObjects.Graphics
+  ): void {
+    this.strokeRoutePath(shadow, points, 82, 0x240617, 0.26, 0, 13);
+    this.strokeRoutePath(shadow, points, 72, 0x7f1d4d, 0.22, 0, 6);
+    this.strokeRoutePath(base, points, 68, 0x9f3f63, 0.3);
+    this.strokeRoutePath(base, points, 58, 0xf0a4b3, 0.42);
+    this.strokeRoutePath(base, points, 47, 0xffd0d7, 0.4);
+    this.strokeRoutePath(base, points, 30, 0xffedf0, 0.26);
   }
 
   private drawRouteChannelGlow(points: Array<{ x: number; y: number }>): void {
     for (const point of points) {
       const world = this.toVisualWorld(point.x, point.y);
       const radius = this.perspectiveWidthForY(point.y, 24);
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 1.3, radius * 0.54, 0x43e0c2, 0.08));
-      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.82, radius * 0.28, 0xffffff, 0.06));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y + 2, radius * 1.1, radius * 0.42, 0x43e0c2, 0.07));
+      this.addToBattlefieldLayer("routeGlowLayer", this.add.ellipse(world.x, world.y - 1, radius * 0.62, radius * 0.2, 0xffffff, 0.05));
     }
   }
 
@@ -456,13 +467,20 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawCoreEnergyBase(): void {
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 18, this.width * 0.86, 58, 0x071123, 0.2));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 34, this.width * 0.7, 44, 0xff5a6e, 0.2));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 42, this.width * 0.58, 30, 0x43e0c2, 0.2));
-    const core = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 30, this.width * 0.52, 42, 0xff7aa2, 0.34));
-    core.setStrokeStyle(3, 0xffffff, 0.56);
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 42, this.width * 0.38, 10, 0xffffff, 0.28));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 32, this.width * 0.62, 50, 0x22d3ee, 0).setStrokeStyle(2, 0x22d3ee, 0.34));
+    this.drawLifeCoreShield();
+  }
+
+  private drawLifeCoreShield(): void {
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 8, this.width * 0.92, 72, 0x050816, 0.34));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 45, this.width * 0.72, 78, 0x5b1134, 0.32));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 56, this.width * 0.62, 54, 0x22d3ee, 0.16));
+    const shield = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 54, this.width * 0.58, 62, 0xff7aa2, 0.28));
+    shield.setStrokeStyle(3, 0xa7f3d0, 0.48);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 58, this.width * 0.38, 36, 0xffd0e8, 0.38));
+    const crystal = this.addToBattlefieldLayer("slotPlatformLayer", this.add.star(this.centerX, this.height - 62, 6, 12, 28, 0xff4fb2, 0.72));
+    crystal.setStrokeStyle(3, 0xffffff, 0.56);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 68, this.width * 0.3, 10, 0xffffff, 0.3));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(this.centerX, this.height - 50, this.width * 0.68, 72, 0x22d3ee, 0).setStrokeStyle(3, 0x22d3ee, 0.42));
   }
 
   private drawSlots(): void {
@@ -489,12 +507,11 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawBiologicalPlatform(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 11, radius * 3.1, radius * 1.05, 0x071123, 0.2));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 5, radius * 2.55, radius * 0.84, 0xfde7ea, 0.34));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 2, radius * 2.24, radius * 0.68, 0xdffdf6, 0.36));
-    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 2, radius * 1.72, radius * 0.46, 0xffffff, 0.2));
-    const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y, radius * 0.86, 0x22d3ee, 0.16));
-    view.setStrokeStyle(3, 0x8be8ff, 0.68);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 13, radius * 3.8, radius * 1.28, 0x050816, 0.32));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 7, radius * 3.18, radius * 1.02, 0x8d3859, 0.46));
+    this.drawImmunePlatformRim(x, y, radius);
+    const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 3, radius * 0.72, 0x22d3ee, 0.34));
+    view.setStrokeStyle(3, 0xdffbff, 0.72);
     this.tweens.add({
       targets: view,
       alpha: { from: 0.72, to: 0.42 },
@@ -505,6 +522,15 @@ export class BattleScene extends Phaser.Scene {
       ease: "Sine.easeInOut"
     });
     return view;
+  }
+
+  private drawImmunePlatformRim(x: number, y: number, radius: number): void {
+    const outer = this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + 2, radius * 3.0, radius * 0.94, 0xd89682, 0.64));
+    outer.setStrokeStyle(4, 0xffd6a3, 0.58);
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 1, radius * 2.38, radius * 0.7, 0x7c3f5a, 0.42).setStrokeStyle(3, 0x76e9ff, 0.5));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 4, radius * 1.62, radius * 0.45, 0xe0fbff, 0.44));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y - 7, radius * 1.02, radius * 0.24, 0xffffff, 0.36));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 5, radius * 0.34, 0x3ccbff, 0.72).setStrokeStyle(2, 0xffffff, 0.68));
   }
 
   private updateSlotHighlights(): void {

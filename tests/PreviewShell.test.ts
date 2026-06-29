@@ -83,6 +83,23 @@ test("battle page layout keeps HUD, canvas, and bottom action bar in one viewpor
   assert.match(styles, /\.phaser-host\s*{[^}]*min-height: 0;/s);
 });
 
+test("first level battle UI uses final mockup style glass HUD and card surfaces", () => {
+  const gameShell = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.ok(gameShell.includes("battle-title-chip"));
+  assert.ok(gameShell.includes("hud-icon"));
+  assert.ok(gameShell.includes("battle-field-title"));
+  assert.ok(gameShell.includes("cell-card-name"));
+  assert.ok(gameShell.includes("cell-card-price"));
+  assert.ok(styles.includes(".battle-title-chip"));
+  assert.ok(styles.includes(".battle-hud-icon"));
+  assert.ok(styles.includes(".battle-action-deck"));
+  assert.ok(styles.includes("radial-gradient(circle at 50% 0%, rgba(70, 225, 255, 0.28)"));
+  assert.match(styles, /\.battle-hud\s*{[^}]*background:/s);
+  assert.match(styles, /\.cell-card\s*{[^}]*box-shadow:/s);
+});
+
 test("v0.1 skin exposes immune sci-fi theme variables and product shell classes", () => {
   const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
   const mainMenu = readFileSync(new URL("../src/components/MainMenu.tsx", import.meta.url), "utf8");

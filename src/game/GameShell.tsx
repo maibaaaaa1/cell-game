@@ -136,10 +136,17 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
       <section className="portrait-battle-shell mx-auto flex w-full max-w-[540px] flex-col gap-2">
         <header className="battle-hud rounded-2xl p-2">
           <div className="battle-hud-main">
+            <div className="battle-title-chip">
+              <span className="battle-title-emblem" aria-hidden="true" />
+              <span>
+                <strong className="battle-field-title">免疫细胞大作战</strong>
+                <small>{level.chapter} · {level.name}</small>
+              </span>
+            </div>
             <div className="battle-hud-stats grid grid-cols-3 gap-2 text-sm font-black">
-              <HudItem label={FIRST_LEVEL_HUD_LABELS[0]} value={state.tissueIntegrity} tone="text-danger" />
-              <HudItem label={FIRST_LEVEL_HUD_LABELS[1]} value={state.atp} tone="text-amber-600" />
-              <HudItem label={FIRST_LEVEL_HUD_LABELS[2]} value={`${state.wave}/${state.maxWave}`} tone="text-lymph" />
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[0]} value={`${state.tissueIntegrity}/100`} tone="text-danger" icon="heart" />
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[1]} value={state.atp} tone="text-amber-600" icon="atp" />
+              <HudItem label={FIRST_LEVEL_HUD_LABELS[2]} value={`${state.wave}/${state.maxWave}`} tone="text-lymph" icon="wave" />
             </div>
             <button className="secondary-button pause-toggle-button" onClick={() => sendBattleCommand({ type: "toggle-pause" })}>
               {state.paused ? "继续" : "暂停"}
@@ -161,7 +168,7 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
           </div>
         </div>
 
-        <footer className="battle-action-bar grid gap-2 rounded-2xl p-2">
+        <footer className="battle-action-bar battle-action-deck grid gap-2 rounded-2xl p-2">
           <div className="cell-card-strip mx-auto grid w-full max-w-sm grid-cols-2 gap-2">
             {actionCells.map((cell) => {
               const selected = state.selectedCell === cell.kind;
@@ -191,9 +198,9 @@ export function GameShell({ level, soundEnabled, onExit, onSaveChanged }: GameSh
                     )}
                     <span className="cell-dot" style={{ backgroundColor: cell.accent }} />
                   </span>
-                  <strong>{cell.name}</strong>
+                  <strong className="cell-card-name">{cell.name}</strong>
                   <small>{cell.role}</small>
-                  <span>{unaffordable ? `ATP不足 · ${cell.cost}` : `${cell.cost} ATP`}</span>
+                  <span className="cell-card-price">{unaffordable ? `ATP不足 · ${cell.cost}` : `${cell.cost} ATP`}</span>
                 </button>
               );
             })}
@@ -252,11 +259,16 @@ function getRenderedCanvasRect(host: HTMLDivElement | null): DOMRect | null {
   return host?.querySelector("canvas")?.getBoundingClientRect() ?? host?.getBoundingClientRect() ?? null;
 }
 
-function HudItem({ label, value, tone }: { label: string; value: string | number; tone: string }) {
+function HudItem({ label, value, tone, icon }: { label: string; value: string | number; tone: string; icon: "heart" | "atp" | "wave" }) {
   return (
     <div className="rounded-xl bg-white px-3 py-2 shadow-sm">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className={`mt-0.5 text-xl ${tone}`}>{value}</div>
+      <div className="flex items-center gap-2">
+        <span className={`battle-hud-icon hud-icon ${icon}`} />
+        <div>
+          <div className="text-xs text-slate-500">{label}</div>
+          <div className={`mt-0.5 text-xl ${tone}`}>{value}</div>
+        </div>
+      </div>
     </div>
   );
 }
