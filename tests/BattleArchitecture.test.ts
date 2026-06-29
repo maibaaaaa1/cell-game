@@ -38,7 +38,9 @@ test("v0.1 battle configs are normalized and ready for chapter expansion", () =>
 
   assert.ok(Object.keys(CELL_CONFIG).length >= 6);
   assert.ok(Object.keys(ENEMY_CONFIG).length >= 5);
-  assert.ok(BATTLE_BALANCE_CONFIG.canvas.aspectRatio > 0);
+  assert.equal(BATTLE_BALANCE_CONFIG.canvas.width, 540);
+  assert.equal(BATTLE_BALANCE_CONFIG.canvas.height, 960);
+  assert.equal(BATTLE_BALANCE_CONFIG.canvas.aspectRatio, 540 / 960);
   assert.equal(BATTLE_BALANCE_CONFIG.canvas.orientation, "portrait");
 });
 

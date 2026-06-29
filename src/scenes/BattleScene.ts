@@ -70,6 +70,7 @@ export class BattleScene extends Phaser.Scene {
   private readonly projectileViews = new Map<string, Phaser.GameObjects.Arc>();
   private readonly effectViews = new Set<Phaser.GameObjects.GameObject>();
   private battlefieldLayers?: Record<BattlefieldLayerName, Phaser.GameObjects.Layer>;
+  private finalBackgroundActive = false;
   private readonly debugEnabled = typeof window !== "undefined" && shouldShowDebugOverlay(window.location.search);
 
   constructor(level: LevelConfig, onSaveChanged: () => void, soundEnabled: boolean) {
@@ -238,8 +239,12 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0xdff7ff);
     const background = ASSET_CONFIG.backgrounds.battle01Nasal;
     const hasFinalBackground = background.enabled && this.textures.exists(background.image.key);
+    this.finalBackgroundActive = hasFinalBackground;
     if (hasFinalBackground) {
       this.drawBackgroundImage(background.image.key, background.opacity);
+      this.drawFinalBackgroundInteractionLayer();
+      this.drawSlots();
+      return;
     } else {
       this.drawNasalMucosaFallback();
       this.drawMucosaWalls();
@@ -257,12 +262,23 @@ export class BattleScene extends Phaser.Scene {
   private drawBackgroundImage(textureKey: string, opacity: number): void {
     const image = this.addToBattlefieldLayer("backgroundLayer", this.add.image(this.centerX, this.centerY, textureKey).setAlpha(opacity));
     this.applyCoverCrop(image, textureKey);
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0xffedf2, 0.035));
-    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x18071a, 0.035));
+    this.addToBattlefieldLayer("terrainLayer", this.add.rectangle(this.centerX, this.centerY, this.width, this.height, 0x160816, 0.018));
     this.addToBattlefieldLayer(
       "terrainLayer",
-      this.add.rectangle(this.centerX, this.centerY, this.width - 18, this.height - 18, 0xffffff, 0.01).setStrokeStyle(2, 0x8be8ff, 0.06)
+      this.add.rectangle(this.centerX, this.centerY, this.width - 12, this.height - 12, 0xffffff, 0).setStrokeStyle(2, 0x8be8ff, 0.045)
     );
+  }
+
+  private drawFinalBackgroundInteractionLayer(): void {
+    const depthVeil = this.addToBattlefieldLayer("terrainLayer", this.add.graphics());
+    depthVeil.fillStyle(0x050816, 0.035);
+    depthVeil.fillRect(0, 0, this.width, this.height);
+    depthVeil.fillStyle(0xffffff, 0.018);
+    depthVeil.fillEllipse(this.centerX, this.height * 0.46, this.width * 0.76, this.height * 0.66);
+    depthVeil.fillStyle(0x22d3ee, 0.02);
+    depthVeil.fillEllipse(this.centerX, this.height * 0.18, this.width * 0.64, this.height * 0.2);
+    depthVeil.fillStyle(0xff5a8d, 0.028);
+    depthVeil.fillEllipse(this.centerX, this.height * 0.91, this.width * 0.62, this.height * 0.16);
   }
 
   private applyCoverCrop(image: Phaser.GameObjects.Image, textureKey: string): void {
@@ -568,6 +584,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawBiologicalPlatform(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
+    if (this.finalBackgroundActive) {
+      return this.drawFinalBackgroundPlatformHint(x, y, radius);
+    }
     this.drawPlatformSocket(x, y, radius);
     this.drawImmunePlatformRim(x, y, radius);
     const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - 3, radius * 0.72, 0x22d3ee, 0.12));
@@ -577,6 +596,23 @@ export class BattleScene extends Phaser.Scene {
       alpha: { from: 0.72, to: 0.42 },
       scale: { from: 1, to: 1.08 },
       duration: 1350,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+    return view;
+  }
+
+  private drawFinalBackgroundPlatformHint(x: number, y: number, radius: number): Phaser.GameObjects.Arc {
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y + radius * 0.28, radius * 2.25, radius * 0.56, 0x050816, 0.12));
+    this.addToBattlefieldLayer("slotPlatformLayer", this.add.ellipse(x, y, radius * 1.9, radius * 0.52, 0x22d3ee, 0).setStrokeStyle(2, 0x76e9ff, 0.18));
+    const view = this.addToBattlefieldLayer("slotPlatformLayer", this.add.circle(x, y - radius * 0.08, radius * 0.42, 0x22d3ee, 0.1));
+    view.setStrokeStyle(2, 0xe0fbff, 0.32);
+    this.tweens.add({
+      targets: view,
+      alpha: { from: 0.58, to: 0.34 },
+      scale: { from: 1, to: 1.05 },
+      duration: 1500,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut"

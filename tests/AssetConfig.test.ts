@@ -208,6 +208,8 @@ test("first level visual reconstruction avoids white gutters and raw white-backe
   const shell = readFileSync(new URL("../src/game/GameShell.tsx", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
+  assert.ok(scene.includes("drawFinalBackgroundInteractionLayer"));
+  assert.match(scene, /if \(hasFinalBackground\) \{[\s\S]*drawBackgroundImage\(background\.image\.key, background\.opacity\);[\s\S]*drawFinalBackgroundInteractionLayer\(\);[\s\S]*drawSlots\(\);[\s\S]*return;[\s\S]*\}/);
   assert.ok(scene.includes("drawBackgroundEdgeBlend"));
   assert.ok(scene.includes("drawSceneOcclusion"));
   assert.ok(scene.includes("drawSubtleLaneGuides"));

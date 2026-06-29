@@ -100,6 +100,14 @@ test("first level battle UI uses final mockup style glass HUD and card surfaces"
   assert.match(styles, /\.cell-card\s*{[^}]*box-shadow:/s);
 });
 
+test("mobile battle HUD uses a compact non-overlapping narrow-screen grid", () => {
+  const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-main\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-stats\s*\{[\s\S]*grid-column: 1 \/ -1;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-title-chip\s*\{[\s\S]*min-width: 0;/s);
+});
+
 test("v0.1 skin exposes immune sci-fi theme variables and product shell classes", () => {
   const styles = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
   const mainMenu = readFileSync(new URL("../src/components/MainMenu.tsx", import.meta.url), "utf8");

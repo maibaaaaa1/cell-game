@@ -1,8 +1,8 @@
 export const BATTLE_BALANCE_CONFIG = {
   canvas: {
     width: 540,
-    height: 720,
-    aspectRatio: 540 / 720,
+    height: 960,
+    aspectRatio: 540 / 960,
     orientation: "portrait" as const
   },
   layout: {

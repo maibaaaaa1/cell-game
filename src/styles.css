@@ -772,7 +772,34 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
     padding: 0.4rem;
   }
 
+  .battle-hud-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.35rem;
+  }
+
+  .battle-title-chip {
+    min-width: 0;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .battle-title-emblem {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.65rem;
+  }
+
+  .battle-field-title {
+    max-width: 8.5rem;
+    font-size: 0.82rem;
+  }
+
+  .battle-title-chip small {
+    max-width: 8.5rem;
+    font-size: 0.62rem;
+  }
+
   .battle-hud-stats {
+    grid-column: 1 / -1;
     gap: 0.35rem;
   }
 
