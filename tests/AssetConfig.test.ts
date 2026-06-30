@@ -224,6 +224,15 @@ test("first level visual reconstruction avoids white gutters and raw white-backe
   assert.match(styles, /\.phaser-host\s*{[^}]*background:/s);
 });
 
+test("final nasal background uses direct background coordinates without extra x perspective", () => {
+  const scene = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
+
+  assert.match(
+    scene,
+    /private toVisualWorld\(x: number, y: number\): \{ x: number; y: number \} \{[\s\S]*if \(this\.finalBackgroundActive\) \{[\s\S]*x: x \* this\.width,[\s\S]*y: y \* this\.height[\s\S]*\}[\s\S]*const perspective = 0\.82 \+ y \* 0\.18;/
+  );
+});
+
 test("battle scene routes battlefield objects through dedicated 2.5D layers", () => {
   const source = readFileSync(new URL("../src/scenes/BattleScene.ts", import.meta.url), "utf8");
 

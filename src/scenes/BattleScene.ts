@@ -1261,6 +1261,12 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private toVisualWorld(x: number, y: number): { x: number; y: number } {
+    if (this.finalBackgroundActive) {
+      return {
+        x: x * this.width,
+        y: y * this.height
+      };
+    }
     const perspective = 0.82 + y * 0.18;
     return {
       x: this.centerX + (x - 0.5) * this.width * perspective,
