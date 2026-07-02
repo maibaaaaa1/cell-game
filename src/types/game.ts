@@ -3,13 +3,16 @@ export type Screen = "home" | "levels" | "codex" | "achievements" | "settings" |
 export type CellKind = "macrophage" | "dendritic" | "nk" | "bcell" | "cd4" | "cd8";
 
 export type EnemyKind =
+  | "normalVirus"
+  | "fastVirus"
   | "bacteria"
   | "fluVirus"
   | "resistantBacteria"
   | "mutantVirus"
   | "miniVirus"
   | "cancerCell"
-  | "cancerKing";
+  | "cancerKing"
+  | "mutantVirusCluster";
 
 export type SkillKind = "fever" | "vaccine" | "cart";
 
@@ -85,10 +88,13 @@ export interface RandomEventConfig {
 
 export interface BattleState {
   life: number;
+  tissueIntegrity: number;
   atp: number;
   wave: number;
   maxWave: number;
+  feverTemperature: number;
   selectedCell?: CellKind;
+  result?: "victory" | "defeat";
   paused: boolean;
   pauseMenuOpen?: boolean;
   message: string;

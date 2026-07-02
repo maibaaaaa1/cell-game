@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { BATTLE_BALANCE_CONFIG } from "../configs/balanceConfig";
+import { ROUTE_CONFIG } from "../configs/routeConfig";
 
 export interface GridSlot {
   row: number;
@@ -11,13 +13,15 @@ export interface GridSlot {
 export class GridSystem {
   readonly rows = 9;
   readonly cols = 5;
-  readonly slotSize = 52;
-  readonly rowGap = 8;
-  readonly colGap = 12;
-  readonly startX = 240;
-  readonly startY = 40;
-  readonly coreX = 902;
+  readonly slotSize = 42;
+  readonly rowGap = 18;
+  readonly colGap = 22;
+  readonly startX = 96;
+  readonly startY = 56;
+  readonly coreX = BATTLE_BALANCE_CONFIG.canvas.width - 34;
   readonly enemyStartX = -42;
+  private readonly canvasWidth = BATTLE_BALANCE_CONFIG.canvas.width;
+  private readonly canvasHeight = BATTLE_BALANCE_CONFIG.canvas.height;
 
   getSlot(row: number, col: number): GridSlot {
     const x = this.startX + col * (this.slotSize + this.colGap) + this.slotSize / 2;
@@ -58,19 +62,19 @@ export class GridSystem {
 
     for (let row = 0; row < this.rows; row += 1) {
       const y = this.getLaneY(row);
-      graphics.fillRoundedRect(24, y - 25, 874, 50, 20);
-      graphics.strokeRoundedRect(24, y - 25, 874, 50, 20);
+      graphics.fillRoundedRect(16, y - 23, this.coreX - 28, 46, 20);
+      graphics.strokeRoundedRect(16, y - 23, this.coreX - 28, 46, 20);
       graphics.fillStyle(0xffffff, 0.5);
-      for (let x = 78; x < 860; x += 92) {
+      for (let x = 54; x < this.coreX - 42; x += 72) {
         graphics.fillTriangle(x, y - 8, x + 18, y, x, y + 8);
       }
       graphics.fillStyle(palette.lane, 1);
     }
 
     graphics.fillStyle(0xff7aa2, 0.9);
-    graphics.fillRoundedRect(896, 28, 42, 520, 18);
+    graphics.fillRoundedRect(this.coreX - 6, 38, 30, this.canvasHeight - 92, 18);
     graphics.fillStyle(0xffffff, 0.86);
-    graphics.fillRoundedRect(904, 46, 26, 484, 13);
+    graphics.fillRoundedRect(this.coreX, 56, 18, this.canvasHeight - 128, 13);
 
     graphics.lineStyle(2, 0xffffff, 0.95);
     for (let row = 0; row < this.rows; row += 1) {
@@ -95,14 +99,40 @@ export class GridSystem {
     }
 
     scene.add
-      .text(908, 22, "核心\n器官", {
+      .text(this.coreX + 8, 16, "核心\n器官", {
         fontFamily: "system-ui",
-        fontSize: "15px",
+        fontSize: "13px",
         fontStyle: "900",
         align: "center",
         color: "#be123c"
       })
       .setOrigin(0.5, 0);
+
+    this.drawRoutePreview(graphics);
+  }
+
+  toWorldPoint(point: { x: number; y: number }): { x: number; y: number } {
+    return {
+      x: point.x * this.canvasWidth,
+      y: point.y * this.canvasHeight
+    };
+  }
+
+  private drawRoutePreview(graphics: Phaser.GameObjects.Graphics): void {
+    ["noseLeft", "noseRight"].forEach((routeId) => {
+      const route = ROUTE_CONFIG[routeId];
+      graphics.lineStyle(4, 0xffffff, 0.32);
+      route.points.forEach((point, index) => {
+        const world = this.toWorldPoint(point);
+        if (index === 0) {
+          graphics.beginPath();
+          graphics.moveTo(world.x, world.y);
+          return;
+        }
+        graphics.lineTo(world.x, world.y);
+      });
+      graphics.strokePath();
+    });
   }
 
   private getPalette(mapKey: string): { background: number; lane: number; laneLine: number } {

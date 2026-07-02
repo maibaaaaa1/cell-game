@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ACHIEVEMENTS } from "./configs/achievements";
 import { Achievements } from "./components/Achievements";
 import { Codex } from "./components/Codex";
@@ -6,6 +6,7 @@ import { LevelSelect } from "./components/LevelSelect";
 import { MainMenu } from "./components/MainMenu";
 import { Settings } from "./components/Settings";
 import { GameShell } from "./game/GameShell";
+import { shouldShowDebugOverlay } from "./game/firstLevelPresentation";
 import { loadSave, resetSave, saveGame } from "./systems/storage";
 import type { LevelConfig, SaveData, Screen } from "./types/game";
 
@@ -14,6 +15,16 @@ export default function App() {
   const [save, setSave] = useState<SaveData>(() => loadSave());
   const [activeLevel, setActiveLevel] = useState<LevelConfig | null>(null);
   const [achievementToast, setAchievementToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const debugEnabled = shouldShowDebugOverlay(window.location.search);
+    document.body.classList.toggle("debug-tools-enabled", debugEnabled);
+    document.body.classList.toggle("debug-tools-disabled", !debugEnabled);
+
+    return () => {
+      document.body.classList.remove("debug-tools-enabled", "debug-tools-disabled");
+    };
+  }, []);
 
   const refreshSave = useCallback(() => {
     setSave((previous) => {
