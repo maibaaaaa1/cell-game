@@ -763,39 +763,45 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
 
 @media (max-width: 420px), (max-height: 760px) {
   .game-shell {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding: max(0.2rem, env(safe-area-inset-top)) 0.4rem max(0.25rem, env(safe-area-inset-bottom));
+  }
+
+  .portrait-battle-shell {
+    max-width: min(100%, 30rem);
+    gap: 0.3rem;
   }
 
   .battle-hud {
-    border-radius: 1rem;
-    padding: 0.4rem;
+    border-radius: 0.85rem;
+    padding: 0.32rem;
   }
 
   .battle-hud-main {
     grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     gap: 0.35rem;
   }
 
   .battle-title-chip {
     min-width: 0;
-    padding: 0.35rem 0.45rem;
+    gap: 0.42rem;
+    padding: 0.28rem 0.42rem;
   }
 
   .battle-title-emblem {
-    width: 1.85rem;
-    height: 1.85rem;
-    border-radius: 0.65rem;
+    width: 1.62rem;
+    height: 1.62rem;
+    border-radius: 0.55rem;
   }
 
   .battle-field-title {
-    max-width: 8.5rem;
-    font-size: 0.82rem;
+    max-width: 9.8rem;
+    font-size: 0.76rem;
   }
 
   .battle-title-chip small {
-    max-width: 8.5rem;
-    font-size: 0.62rem;
+    max-width: 9.8rem;
+    font-size: 0.56rem;
   }
 
   .battle-hud-stats {
@@ -805,51 +811,57 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
 
   .battle-hud-stats > div {
     border-radius: 0.75rem;
-    padding: 0.35rem 0.45rem;
+    min-height: 2.35rem;
+    padding: 0.24rem 0.36rem;
+  }
+
+  .battle-hud-icon {
+    width: 0.95rem;
+    height: 0.95rem;
   }
 
   .battle-hud-stats .text-xl {
-    font-size: 1.05rem;
-    line-height: 1.35rem;
+    font-size: 0.98rem;
+    line-height: 1.05rem;
   }
 
   .battle-hud-stats .text-xs {
-    font-size: 0.68rem;
-    line-height: 0.95rem;
+    font-size: 0.56rem;
+    line-height: 0.72rem;
   }
 
   .pause-toggle-button {
     grid-column: 2;
     grid-row: 1;
-    min-height: 2.75rem;
+    min-height: 2.15rem;
     border-radius: 0.75rem;
-    padding-left: 0.8rem;
-    padding-right: 0.8rem;
+    padding: 0.35rem 0.72rem;
+    font-size: 0.9rem;
   }
 
   .battle-canvas-frame {
     align-self: center;
     aspect-ratio: 9 / 16;
-    width: min(100%, calc((100dvh - 18rem) * 0.5625));
-    border-radius: 1rem;
-    padding: 0.3rem;
+    width: min(100%, calc((100dvh - 12.5rem) * 0.5625));
+    border-radius: 0.9rem;
+    padding: 0.22rem;
   }
 
   .battle-action-bar {
     border-radius: 1rem;
-    gap: 0.4rem;
-    padding: 0.35rem 0.4rem calc(0.35rem + env(safe-area-inset-bottom));
+    gap: 0.3rem;
+    padding: 0.32rem 0.36rem calc(0.32rem + env(safe-area-inset-bottom));
   }
 
   .cell-card-strip .cell-card {
-    min-height: 58px;
-    padding: 0.45rem;
+    min-height: 54px;
+    padding: 0.38rem;
     column-gap: 0.45rem;
   }
 
   .cell-card-portrait {
-    width: 2.65rem;
-    height: 2.65rem;
+    width: 2.35rem;
+    height: 2.35rem;
   }
 
   .cell-card strong {
@@ -861,9 +873,9 @@ body.debug-tools-disabled iframe[title*="Vercel"] {
   }
 
   .battle-status-message {
-    max-height: 40px;
-    padding-top: 0.35rem;
-    padding-bottom: 0.35rem;
+    max-height: 34px;
+    padding-top: 0.28rem;
+    padding-bottom: 0.28rem;
     font-size: 0.78rem;
     line-height: 1rem;
   }

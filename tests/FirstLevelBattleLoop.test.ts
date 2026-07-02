@@ -87,8 +87,8 @@ test("first level routes move from top entrance toward bottom tissue core", () =
   const leftRoute = ROUTE_CONFIG.noseLeft;
   const rightRoute = ROUTE_CONFIG.noseRight;
 
-  assert.ok(leftRoute.points[0].x > 0.28 && leftRoute.points[0].x < 0.39, "left route should start at the left nostril opening");
-  assert.ok(rightRoute.points[0].x > 0.61 && rightRoute.points[0].x < 0.72, "right route should start at the right nostril opening");
+  assert.ok(leftRoute.points[0].x > 0.25 && leftRoute.points[0].x < 0.31, "left route should start at the left nostril center");
+  assert.ok(rightRoute.points[0].x > 0.69 && rightRoute.points[0].x < 0.75, "right route should start at the right nostril center");
 
   for (const route of [leftRoute, rightRoute]) {
     const start = route.points[0];
@@ -103,33 +103,35 @@ test("first level routes move from top entrance toward bottom tissue core", () =
 
 test("first level routes follow the final nasal background lanes", () => {
   assert.deepEqual(ROUTE_CONFIG.noseLeft.points.map((point) => [point.x, point.y]), [
-    [0.34, 0.045],
-    [0.34, 0.16],
-    [0.29, 0.3],
-    [0.36, 0.43],
-    [0.29, 0.57],
-    [0.38, 0.73],
-    [0.49, 0.91]
+    [0.28, 0.045],
+    [0.26, 0.13],
+    [0.34, 0.25],
+    [0.29, 0.37],
+    [0.36, 0.49],
+    [0.31, 0.61],
+    [0.4, 0.75],
+    [0.48, 0.91]
   ]);
   assert.deepEqual(ROUTE_CONFIG.noseRight.points.map((point) => [point.x, point.y]), [
-    [0.66, 0.045],
-    [0.66, 0.16],
-    [0.71, 0.3],
-    [0.64, 0.43],
-    [0.71, 0.57],
-    [0.62, 0.73],
-    [0.51, 0.91]
+    [0.72, 0.045],
+    [0.74, 0.13],
+    [0.66, 0.25],
+    [0.71, 0.37],
+    [0.64, 0.49],
+    [0.69, 0.61],
+    [0.6, 0.75],
+    [0.52, 0.91]
   ]);
 });
 
 test("first level deploy slots align with final background platform centers", () => {
   assert.deepEqual(ROUTE_CONFIG.noseLeft.cellSlots.map((slot) => [slot.id, slot.x, slot.y]), [
-    ["slot-1", 0.5, 0.21],
-    ["slot-2", 0.31, 0.38],
-    ["slot-3", 0.69, 0.38],
-    ["slot-4", 0.31, 0.6],
-    ["slot-5", 0.69, 0.6],
-    ["slot-6", 0.5, 0.74]
+    ["slot-1", 0.5, 0.18],
+    ["slot-2", 0.3, 0.32],
+    ["slot-3", 0.7, 0.32],
+    ["slot-4", 0.3, 0.52],
+    ["slot-5", 0.7, 0.52],
+    ["slot-6", 0.5, 0.69]
   ]);
 });
 

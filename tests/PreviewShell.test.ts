@@ -107,6 +107,9 @@ test("mobile battle HUD uses a compact non-overlapping narrow-screen grid", () =
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-stats\s*\{[\s\S]*grid-column: 1 \/ -1;/s);
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.pause-toggle-button\s*\{[\s\S]*grid-column: 2;[\s\S]*grid-row: 1;/s);
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-title-chip\s*\{[\s\S]*min-width: 0;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-main\s*\{[\s\S]*grid-template-rows: auto auto;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-stats > div\s*\{[\s\S]*min-height: 2\.35rem;/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-hud-icon\s*\{[\s\S]*width: 0\.95rem;/s);
 });
 
 test("mobile battlefield frame matches the portrait canvas instead of leaving side gutters", () => {
@@ -114,7 +117,8 @@ test("mobile battlefield frame matches the portrait canvas instead of leaving si
 
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*align-self: center;/s);
   assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*aspect-ratio: 9 \/ 16;/s);
-  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*width: min\(100%, calc\(\(100dvh - 18rem\) \* 0\.5625\)\);/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.battle-canvas-frame\s*\{[\s\S]*width: min\(100%, calc\(\(100dvh - 12\.5rem\) \* 0\.5625\)\);/s);
+  assert.match(styles, /@media \(max-width: 420px\), \(max-height: 760px\) \{[\s\S]*\.portrait-battle-shell\s*\{[\s\S]*max-width: min\(100%, 30rem\);/s);
 });
 
 test("v0.1 skin exposes immune sci-fi theme variables and product shell classes", () => {
@@ -176,7 +180,7 @@ test("stage 2.13 skin does not change frozen first level balance", () => {
   assert.ok(waves.includes("{ enemy: \"mutantVirusCluster\", count: 1, route: \"mixed\""));
   assert.ok(routes.includes("const noseSlots: RouteSlotConfig[] = ["));
   assert.ok(routes.includes("cellSlots: noseSlots"));
-  assert.ok(routes.includes("{ id: \"slot-6\", row: 3, col: 1, x: 0.5, y: 0.74 }"));
+  assert.ok(routes.includes("{ id: \"slot-6\", row: 3, col: 1, x: 0.5, y: 0.69 }"));
   assert.ok(cells.includes("nk: { id: \"nk\", cost: 70"));
   assert.ok(boss.includes("cancerKing"));
 });
